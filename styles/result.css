@@ -1,0 +1,78 @@
+.test-container {
+  display: flex;
+  justify-content: center;
+  padding: 60px 20px;
+  background: #f3f6ff;
+  min-height: 100vh;
+}
+
+.test-card {
+  background: #fff;
+  padding: 40px;
+  border-radius: 18px;
+  max-width: 480px;
+  width: 100%;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  animation: fadein 0.4s ease;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: bold;
+  color: #2d3e85;
+}
+
+.subtitle {
+  font-size: 16px;
+  margin-top: 10px;
+  margin-bottom: 25px;
+  color: #5a5a5a;
+}
+
+.form-row {
+  margin-bottom: 18px;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-label {
+  font-size: 15px;
+  margin-bottom: 6px;
+  color: #333;
+}
+
+.form-input {
+  padding: 10px 14px;
+  font-size: 15px;
+  border-radius: 8px;
+  border: 1px solid #cfd3e1;
+  background: #f9faff;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #5d7df8;
+  background: #fff;
+}
+
+.btn-primary {
+  background: #5d7df8;
+  padding: 12px 20px;
+  color: white;
+  border: none;
+  font-size: 17px;
+  border-radius: 10px;
+  width: 100%;
+  margin-top: 20px;
+  cursor: pointer;
+  transition: 0.15s;
+}
+
+.btn-primary:hover {
+  background: #4b67d6;
+}
+
+@keyframes fadein {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

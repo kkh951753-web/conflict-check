@@ -1,0 +1,135 @@
+/* styles/test.css */
+
+/* 전체 배경 */
+.test-container {
+  min-height: 100vh;
+  padding: 48px 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #f5f7ff;
+}
+
+/* 가운데 정렬용 박스 */
+.test-inner {
+  width: 100%;
+  max-width: 540px;
+  margin: 0 auto;
+}
+
+/* ---------- 진행 바 ---------- */
+
+.test-progress-wrapper {
+  margin-bottom: 24px;
+}
+
+.test-progress {
+  position: relative;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: #e3e7ff;
+  overflow: hidden;
+}
+
+.test-progress-fill {
+  height: 100%;
+  width: 0;
+  border-radius: inherit;
+  background: #6c80ff;
+  transition: width 0.35s ease;
+}
+
+.test-progress-text {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #6b7280;
+  text-align: right;
+}
+
+/* ---------- 카드 & 애니메이션 ---------- */
+
+.test-card {
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 32px 28px 28px;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
+  animation: test-slide-in 0.35s ease;
+}
+
+/* 슬라이드 인 애니메이션 */
+@keyframes test-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 질문 텍스트 */
+.test-question-text {
+  font-size: 20px;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1.5;
+  margin-bottom: 24px;
+}
+
+/* 보기 버튼 묶음 */
+.test-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* 보기 버튼 */
+.test-option-button {
+  width: 100%;
+  border: none;
+  border-radius: 999px;
+  padding: 12px 18px;
+  font-size: 15px;
+  text-align: left;
+  cursor: pointer;
+
+  background: #f9fafb;
+  color: #111827;
+
+  transition:
+    background 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.1s ease;
+}
+
+/* 호버 효과 */
+.test-option-button:hover {
+  background: #eef2ff;
+  box-shadow: 0 8px 20px rgba(129, 140, 248, 0.25);
+  transform: translateY(-1px);
+}
+
+/* 클릭 시 살짝 내려오게 */
+.test-option-button:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+/* ---------- 모바일 대응 ---------- */
+
+@media (max-width: 640px) {
+  .test-card {
+    padding: 24px 20px 24px;
+    border-radius: 18px;
+  }
+
+  .test-question-text {
+    font-size: 18px;
+  }
+
+  .test-option-button {
+    font-size: 14px;
+  }
+}
