@@ -3,7 +3,8 @@
 
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { questions } from "./data/questions";
+import { questions } from "../data/questions";
+
 
 export default function QuestionsPage() {
   const router = useRouter();
