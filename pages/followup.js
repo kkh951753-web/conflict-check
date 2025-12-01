@@ -90,7 +90,7 @@ export default function FollowupPage() {
           </p>
 
           <div className="followup-footer-actions">
-            <Link href="/" className="followup-link-button">
+            <Link href="/test" className="followup-link-button">
               메인으로 돌아가기
             </Link>
             {/* 결과 페이지 경로를 /result 로 쓰고 있다면 이렇게 */}
