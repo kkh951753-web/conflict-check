@@ -908,3 +908,26 @@ body {
   max-width: 420px;
   box-shadow: 0 6px 20px rgba(0,0,0,0.15);
 }
+/* 결과 페이지 카드 크기 개선 - 모바일 대응 */
+@media (max-width: 768px) {
+  .result-card {
+    padding: 24px 20px;
+  }
+}
+
+.result-container {
+  max-width: 1200px; /* ✅ 카드 너비 확장 */
+  margin: 40px auto;
+  padding: 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.result-card {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 32px 40px; /* ✅ 좌우 패딩 확장 */
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+  margin-bottom: 20px;
+}
