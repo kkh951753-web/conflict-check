@@ -1,7 +1,8 @@
+// pages/test.js
 "use client";
 
-import { useRouter } from "next/router";
 import { useState } from "react";
+import { useRouter } from "next/router";
 
 export default function TestPage() {
   const router = useRouter();
@@ -15,6 +16,8 @@ export default function TestPage() {
     agree: false,
   });
 
+  const [showTerms, setShowTerms] = useState(false);
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setForm((prev) => ({
@@ -23,9 +26,7 @@ export default function TestPage() {
     }));
   };
 
-  const handleStart = (e) => {
-    e.preventDefault();
-
+  const handleStart = () => {
     if (!form.name || !form.age || !form.gender || !form.phone) {
       alert("이름, 나이, 성별, 연락처를 모두 입력해 주세요.");
       return;
@@ -49,62 +50,162 @@ export default function TestPage() {
   };
 
   return (
-    <main className="test-container">
-      <section className="test-card">
-        <h1 className="title">갈등 대처 유형 테스트</h1>
-        <p className="subtitle">간단한 정보를 입력하고 검사를 시작해 보세요.</p>
+    <main className="page">
+      <div className="card" style={{ padding: "36px" }}>
+        <h1 className="title" style={{ textAlign: "center", marginBottom: "10px" }}>
+          갈등 대처 유형 테스트
+        </h1>
 
-        <form className="test-form" onSubmit={handleStart}>
-          {/* 입력 폼들 */}
-          {["name", "age", "mbti", "phone"].map((field) => (
-            <div className="form-row" key={field}>
-              <label className="form-label">
-                {field === "name" && "이름"}
-                {field === "age" && "나이"}
-                {field === "mbti" && "MBTI (선택)"}
-                {field === "phone" && "연락처"}
-              </label>
-              <input
-                name={field}
-                value={form[field]}
-                onChange={handleChange}
-                className="form-input"
-                placeholder={field === "mbti" ? "예: ENTP (선택사항)" : ""}
-              />
-            </div>
-          ))}
+        <p className="subtitle" style={{ textAlign: "center", marginBottom: "24px" }}>
+          간단한 정보를 입력하고 검사를 시작해 보세요.
+        </p>
 
-          <div className="form-row">
-            <label className="form-label">성별</label>
-            <select
-              name="gender"
-              value={form.gender}
+        <div className="input-group">
+          <label>이름</label>
+          <input type="text" name="name" value={form.name} onChange={handleChange} />
+
+          <label>나이</label>
+          <input type="text" name="age" value={form.age} onChange={handleChange} />
+
+          <label>MBTI (선택)</label>
+          <input
+            type="text"
+            name="mbti"
+            value={form.mbti}
+            placeholder="예: ENTP (선택사항)"
+            onChange={handleChange}
+          />
+
+          <label>연락처</label>
+          <input
+            type="text"
+            name="phone"
+            value={form.phone}
+            placeholder="예: 010-0000-0000"
+            onChange={handleChange}
+          />
+
+          <label>성별</label>
+          <select name="gender" value={form.gender} onChange={handleChange}>
+            <option value="">선택해 주세요</option>
+            <option value="남성">남성</option>
+            <option value="여성">여성</option>
+          </select>
+        </div>
+
+        <div style={{ marginTop: "16px" }}>
+          <label>
+            <input
+              type="checkbox"
+              name="agree"
+              checked={form.agree}
               onChange={handleChange}
-              className="form-input"
-            >
-              <option value="">선택해 주세요</option>
-              <option value="남성">남성</option>
-              <option value="여성">여성</option>
-            </select>
-          </div>
+              style={{ marginRight: "8px" }}
+            />
+            개인정보 수집 · 이용에 동의합니다 (필수)
+          </label>
 
-          <div className="terms-row">
-            <label className="terms-check">
-              <input
-                type="checkbox"
-                name="agree"
-                checked={form.agree}
-                onChange={handleChange}
-              />
-              개인정보 수집 · 이용에 동의합니다 (필수)
-            </label>
-          </div>
-
-          <button type="submit" className="btn-primary start-button">
-            검사 시작하기
+          <button
+            type="button"
+            onClick={() => setShowTerms(true)}
+            style={{
+              marginLeft: "12px",
+              fontSize: "0.9rem",
+              textDecoration: "underline",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              color: "#555",
+            }}
+          >
+            약관 보기
           </button>
-        </form>
-      </section>
+        </div>
+
+        <button
+          className="primary-btn-blue"
+          style={{
+            width: "100%",
+            marginTop: "24px",
+            opacity: form.agree ? 1 : 0.6,
+            cursor: form.agree ? "pointer" : "not-allowed",
+          }}
+          onClick={handleStart}
+          disabled={!form.agree}
+        >
+          검사 시작하기
+        </button>
+      </div>
+
+      {/* 약관 모달 */}
+      {showTerms && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0,0,0,0.5)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 1000,
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: "#fff",
+              padding: "24px",
+              borderRadius: "8px",
+              width: "90%",
+              maxWidth: "600px",
+              maxHeight: "80vh",
+              overflowY: "auto",
+            }}
+          >
+            <h2 style={{ marginBottom: "16px" }}>개인정보 수집 및 이용 동의서</h2>
+
+            <p style={{ fontSize: "0.9rem", lineHeight: "1.6" }}>
+              <strong>1. 수집하는 개인정보 항목</strong><br/>
+              - 이름, 성별, 나이, MBTI 유형, 연락처<br/><br/>
+
+              <strong>2. 수집 및 이용 목적</strong><br/>
+              - 테스트 결과 분석 및 제공<br/>
+              - 통계 분석 및 서비스 개선<br/>
+              - 사용자 식별 및 중복 응답 방지<br/>
+              - 사후 설문 요청 또는 상담 안내<br/><br/>
+
+              <strong>3. 보유 및 이용 기간</strong><br/>
+              - 수집된 정보는 테스트 결과 제공 이후 6개월간 보관 후 파기됩니다.<br/>
+              - 통계용 정보는 익명화 후 보관될 수 있습니다.<br/><br/>
+
+              <strong>4. 개인정보 제공 및 위탁</strong><br/>
+              - 제3자에게 제공되지 않으며, 외부에 위탁하지 않습니다.<br/><br/>
+
+              <strong>5. 동의 거부 권리</strong><br/>
+              - 동의하지 않을 수 있으나, 서비스 이용에 제한이 있습니다.<br/><br/>
+
+              위 내용을 충분히 이해하였으며, 이에 동의합니다.
+            </p>
+
+            <button
+              onClick={() => setShowTerms(false)}
+              style={{
+                marginTop: "16px",
+                padding: "10px 20px",
+                backgroundColor: "#6C63FF",
+                color: "#fff",
+                border: "none",
+                borderRadius: "5px",
+                cursor: "pointer",
+              }}
+            >
+              닫기
+            </button>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
