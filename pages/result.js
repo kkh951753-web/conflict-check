@@ -1,12 +1,6 @@
 // pages/result.js
 "use client";
 
-console.log("SUPA URL:", process.env.NEXT_PUBLIC_SUPABASE_URL);
-console.log(
-  "SUPA KEY:",
-  process.env.NEXT_PUBLIC_SUPABASE_KEY ? "OK" : "MISSING"
-);
-
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import supabase from "../lib/supabaseClient";
@@ -23,7 +17,6 @@ import {
 export default function ResultPage() {
   const router = useRouter();
 
-  // 점수 상태
   const [scores, setScores] = useState({
     감정: 0,
     문제해결: 0,
@@ -31,20 +24,16 @@ export default function ResultPage() {
     회피: 0,
   });
 
-  // ✅ 전화번호까지 포함한 사용자 정보
   const [userInfo, setUserInfo] = useState({
     name: "",
     age: "",
     gender: "",
     mbti: "",
-    phone: "", // ← 추가
+    phone: "",
   });
 
   const [loading, setLoading] = useState(true);
 
-  // -----------------------------
-  // URL 파라미터 → 데이터 변환
-  // -----------------------------
   useEffect(() => {
     if (!router.isReady) return;
 
@@ -62,7 +51,7 @@ export default function ResultPage() {
       age: q.age || "",
       gender: q.gender || "",
       mbti: q.mbti || "",
-      phone: q.phone || "", // ✅ URL에서 phone 읽어오기
+      phone: q.phone || "",
     };
 
     setScores(newScores);
@@ -70,9 +59,6 @@ export default function ResultPage() {
     setLoading(false);
   }, [router.isReady, router.query]);
 
-  // -----------------------------
-  // 대표 유형 계산
-  // -----------------------------
   function pickMainType(scoresObj) {
     const arr = Object.entries(scoresObj).sort((a, b) => b[1] - a[1]);
     return arr[0][0];
@@ -80,9 +66,6 @@ export default function ResultPage() {
 
   const mainType = pickMainType(scores);
 
-  // -----------------------------
-  // Supabase 저장 기능
-  // -----------------------------
   useEffect(() => {
     if (loading) return;
     if (!userInfo.name) return;
@@ -93,8 +76,7 @@ export default function ResultPage() {
         age: userInfo.age,
         gender: userInfo.gender,
         mbti: userInfo.mbti,
-        phone: userInfo.phone, // ✅ 여기서 Supabase에 전화번호 저장
-
+        phone: userInfo.phone,
         emotion_score: scores.감정,
         problem_score: scores.문제해결,
         relation_score: scores.관계,
@@ -112,9 +94,6 @@ export default function ResultPage() {
     saveResult();
   }, [loading, userInfo, scores, mainType]);
 
-  // -----------------------------
-  // 설명 데이터
-  // -----------------------------
   function getDescription(type, mbti) {
     const base = {
       감정: {
@@ -191,9 +170,6 @@ export default function ResultPage() {
 
   const info = getDescription(mainType, userInfo.mbti);
 
-  // -----------------------------
-  // 그래프 데이터
-  // -----------------------------
   const chartData = [
     { name: "감정형", value: scores.감정 },
     { name: "문제해결형", value: scores.문제해결 },
@@ -203,9 +179,6 @@ export default function ResultPage() {
 
   if (loading) return <p>점수를 불러오는 중...</p>;
 
-  // -----------------------------
-  // 이동 함수
-  // -----------------------------
   const goToRetest = () => {
     router.push("/test");
   };
@@ -221,9 +194,6 @@ export default function ResultPage() {
     });
   };
 
-  // -----------------------------
-  // UI 렌더링
-  // -----------------------------
   return (
     <main className="result-container">
       <section className="result-card">
@@ -233,12 +203,13 @@ export default function ResultPage() {
 
         <p className="highlight">{info.title}</p>
 
+        {/* ✅ 기본 정보 표시 - 수정된 부분 */}
         <h3 className="section-title">기본 정보</h3>
-        <p>이름: {userInfo.name}</p>
-        <p>나이: {userInfo.age}</p>
-        <p>성별: {userInfo.gender}</p>
-        <p>MBTI: {userInfo.mbti}</p>
-        <p>연락처: {userInfo.phone}</p>
+        <p>이름: {userInfo.name || "-"}</p>
+        <p>나이: {userInfo.age || "-"}</p>
+        <p>성별: {userInfo.gender || "-"}</p>
+        <p>MBTI: {userInfo.mbti || "-"}</p>
+        <p>연락처: {userInfo.phone || "-"}</p>
 
         <h3 className="section-title">나의 갈등 대처 특징</h3>
         {info.text.map((t, i) => (
@@ -285,7 +256,6 @@ export default function ResultPage() {
           <button className="btn-outline" onClick={goToRetest}>
             다시 검사하기
           </button>
-
           <button className="btn-primary" onClick={goToNextStepPage}>
             후속 프로그램 안내 보기
           </button>
