@@ -1,9 +1,9 @@
-import supabase from "@/lib/supabaseClient";
-// pages/test.js
-"use client";
+"use client"; // 
 
+import supabase from "@/lib/supabaseClient"; // 기존 위치 X
 import { useState } from "react";
 import { useRouter } from "next/router";
+
 
 export default function TestPage() {
   const router = useRouter();
@@ -48,30 +48,43 @@ export default function TestPage() {
   // ===========================================
 
   const handleStart = async () => {
-    if (!form.name || !form.age || !form.gender || !form.phone) {
-      alert("이름, 나이, 성별, 연락처를 모두 입력해 주세요.");
-      return;
-    }
+  if (!form.name || !form.age || !form.gender || !form.phone) {
+    alert("이름, 나이, 성별, 연락처를 모두 입력해 주세요.");
+    return;
+  }
 
-    if (!form.agree) {
-      alert("개인정보 수집 · 이용에 동의해 주세요.");
-      return;
-    }
+  if (!form.agree) {
+    alert("개인정보 수집 · 이용에 동의해 주세요.");
+    return;
+  }
 
-    // 🟢 Supabase 저장 실행!
-    await saveUserInfo();
-
-    router.push({
-      pathname: "/questions",
-      query: {
+  // ✅ Supabase에 저장 요청
+  try {
+    const { error } = await supabase.from("test_results").insert([
+      {
         name: form.name,
-        age: form.age,
+        age: parseInt(form.age),
         gender: form.gender,
         mbti: form.mbti,
         phone: form.phone,
+        created_at: new Date(),
       },
+    ]);
+
+    if (error) {
+      throw error;
+    }
+
+    // 저장 성공 시 다음 페이지로 이동
+    router.push({
+      pathname: "/questions",
+      query: { ...form },
     });
-  };
+  } catch (err) {
+    console.error("❌ Supabase 저장 오류:", err.message);
+    alert("오류가 발생했습니다. 다시 시도해 주세요.");
+  }
+};
 
   return (
     <main className="page">
