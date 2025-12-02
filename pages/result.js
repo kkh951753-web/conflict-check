@@ -3,8 +3,6 @@
 
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import supabase from "../lib/supabaseClient";
-
 import {
   BarChart,
   Bar,
@@ -17,6 +15,14 @@ import {
 export default function ResultPage() {
   const router = useRouter();
 
+  const [userInfo, setUserInfo] = useState({
+    name: "-",
+    age: "-",
+    gender: "-",
+    mbti: "-",
+    phone: "-",
+  });
+
   const [scores, setScores] = useState({
     감정: 0,
     문제해결: 0,
@@ -24,75 +30,36 @@ export default function ResultPage() {
     회피: 0,
   });
 
-  const [userInfo, setUserInfo] = useState({
-    name: "",
-    age: "",
-    gender: "",
-    mbti: "",
-    phone: "",
-  });
-
-  const [loading, setLoading] = useState(true);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     if (!router.isReady) return;
 
-    const q = router.query;
-
-    setScores({
-      감정: Number(q["감정"]) || 0,
-      문제해결: Number(q["문제해결"]) || 0,
-      관계: Number(q["관계"]) || 0,
-      회피: Number(q["회피"]) || 0,
-    });
+    const query = router.query;
 
     setUserInfo({
-      name: q.name || "",
-      age: q.age || "",
-      gender: q.gender || "",
-      mbti: q.mbti || "",
-      phone: q.phone || "",
+      name: query.name || "-",
+      age: query.age || "-",
+      gender: query.gender || "-",
+      mbti: query.mbti || "-",
+      phone: query.phone || "-",
     });
 
-    setLoading(false);
+    setScores({
+      감정: Number(query["감정"] || 0),
+      문제해결: Number(query["문제해결"] || 0),
+      관계: Number(query["관계"] || 0),
+      회피: Number(query["회피"] || 0),
+    });
+
+    setReady(true);
   }, [router.isReady, router.query]);
 
-  function pickMainType(scoresObj) {
-    const arr = Object.entries(scoresObj).sort((a, b) => b[1] - a[1]);
-    return arr[0][0];
+  if (!ready) {
+    return <p>결과를 불러오는 중입니다...</p>;
   }
 
-  const mainType = pickMainType(scores);
-
-  // Supabase 저장
-  useEffect(() => {
-    if (loading) return;
-    if (!userInfo.name) return;
-
-    const saveResult = async () => {
-      const { error } = await supabase.from("test_results").insert({
-        name: userInfo.name,
-        age: userInfo.age,
-        gender: userInfo.gender,
-        mbti: userInfo.mbti,
-        phone: userInfo.phone,
-
-        emotion_score: scores.감정,
-        problem_score: scores.문제해결,
-        relation_score: scores.관계,
-        avoid_score: scores.회피,
-        main_type: mainType,
-      });
-
-      if (error) {
-        console.error("❌ 결과 저장 실패:", error);
-      } else {
-        console.log("✅ 결과 저장 완료");
-      }
-    };
-
-    saveResult();
-  }, [loading, userInfo, scores, mainType]);
+  const mainType = Object.entries(scores).sort((a, b) => b[1] - a[1])[0][0];
 
   function getDescription(type, mbti) {
     const base = {
@@ -157,11 +124,10 @@ export default function ResultPage() {
           "갈등이 겁나는 이유를 차분히 명료화하는 작업이 필요합니다.",
         ],
         direction: [
-          "감정 폭발이 두려움인지, 갈등 자체가 불편한 것인지 구분하면 다음 행동이 쉬워집니다.",
+          "1) 감정 폭발이 두려움인지, 2) 갈등 자체가 불편한 것인지 구분하면 다음 행동이 쉬워집니다.",
         ],
       },
     };
-
     return base[type];
   }
 
@@ -173,19 +139,6 @@ export default function ResultPage() {
     { name: "관계형", value: scores.관계 },
     { name: "회피형", value: scores.회피 },
   ];
-
-  const goToRetest = () => router.push("/test");
-  const goToNextStepPage = () =>
-    router.push({
-      pathname: "/followup",
-      query: {
-        mainType,
-        name: userInfo.name,
-        mbti: userInfo.mbti,
-      },
-    });
-
-  if (loading) return <p>결과 불러오는 중...</p>;
 
   return (
     <main className="result-container">
@@ -223,7 +176,7 @@ export default function ResultPage() {
               <XAxis dataKey="name" stroke="#666" />
               <YAxis stroke="#666" />
               <Tooltip />
-              <Bar dataKey="value" fill="#4B8CF5" />
+              <Bar dataKey="value" fill="#4B8CF5" animationDuration={1200} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -232,16 +185,14 @@ export default function ResultPage() {
       <section className="result-card next-step-card">
         <h2 className="section-title">7. 다음 단계로</h2>
         <p className="desc">
-          지금 결과를 바탕으로 나의 패턴을 더 깊게 이해하거나, 후속 프로그램에
-          참여해 실제 갈등 장면에서 적용해볼 수 있어요.
+          지금 결과를 바탕으로 나의 패턴을 더 깊게 이해하거나, 후속 프로그램에 참여해 실제 갈등 장면에서 적용해볼 수 있어요.
         </p>
 
         <div className="button-row">
-          <button className="btn-outline" onClick={goToRetest}>
+          <button className="btn-outline" onClick={() => router.push("/test")}>
             다시 검사하기
           </button>
-
-          <button className="btn-primary" onClick={goToNextStepPage}>
+          <button className="btn-primary" onClick={() => router.push({ pathname: "/followup", query: { mainType, name: userInfo.name, mbti: userInfo.mbti } })}>
             후속 프로그램 안내 보기
           </button>
         </div>
