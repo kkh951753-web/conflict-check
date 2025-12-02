@@ -1,3 +1,4 @@
+import supabase from "@/lib/supabaseClient";
 // pages/test.js
 "use client";
 
@@ -26,7 +27,27 @@ export default function TestPage() {
     }));
   };
 
-  const handleStart = () => {
+  // ✅ 여기에 Supabase 저장 기능 추가
+  const saveUserInfo = async () => {
+    const { error } = await supabase.from("test_results").insert([
+      {
+        name: form.name,
+        age: parseInt(form.age, 10),
+        gender: form.gender,
+        mbti: form.mbti,
+        phone: form.phone,
+      },
+    ]);
+
+    if (error) {
+      console.error("❌ Supabase 저장 실패:", error.message);
+    } else {
+      console.log("✅ 사용자 정보 저장 성공");
+    }
+  };
+  // ===========================================
+
+  const handleStart = async () => {
     if (!form.name || !form.age || !form.gender || !form.phone) {
       alert("이름, 나이, 성별, 연락처를 모두 입력해 주세요.");
       return;
@@ -36,6 +57,9 @@ export default function TestPage() {
       alert("개인정보 수집 · 이용에 동의해 주세요.");
       return;
     }
+
+    // 🟢 Supabase 저장 실행!
+    await saveUserInfo();
 
     router.push({
       pathname: "/questions",
@@ -167,24 +191,24 @@ export default function TestPage() {
             <h2 style={{ marginBottom: "16px" }}>개인정보 수집 및 이용 동의서</h2>
 
             <p style={{ fontSize: "0.9rem", lineHeight: "1.6" }}>
-              <strong>1. 수집하는 개인정보 항목</strong><br/>
-              - 이름, 성별, 나이, MBTI 유형, 연락처<br/><br/>
+              <strong>1. 수집하는 개인정보 항목</strong><br />
+              - 이름, 성별, 나이, MBTI 유형, 연락처<br /><br />
 
-              <strong>2. 수집 및 이용 목적</strong><br/>
-              - 테스트 결과 분석 및 제공<br/>
-              - 통계 분석 및 서비스 개선<br/>
-              - 사용자 식별 및 중복 응답 방지<br/>
-              - 사후 설문 요청 또는 상담 안내<br/><br/>
+              <strong>2. 수집 및 이용 목적</strong><br />
+              - 테스트 결과 분석 및 제공<br />
+              - 통계 분석 및 서비스 개선<br />
+              - 사용자 식별 및 중복 응답 방지<br />
+              - 사후 설문 요청 또는 상담 안내<br /><br />
 
-              <strong>3. 보유 및 이용 기간</strong><br/>
-              - 수집된 정보는 테스트 결과 제공 이후 6개월간 보관 후 파기됩니다.<br/>
-              - 통계용 정보는 익명화 후 보관될 수 있습니다.<br/><br/>
+              <strong>3. 보유 및 이용 기간</strong><br />
+              - 수집된 정보는 테스트 결과 제공 이후 6개월간 보관 후 파기됩니다.<br />
+              - 통계용 정보는 익명화 후 보관될 수 있습니다.<br /><br />
 
-              <strong>4. 개인정보 제공 및 위탁</strong><br/>
-              - 제3자에게 제공되지 않으며, 외부에 위탁하지 않습니다.<br/><br/>
+              <strong>4. 개인정보 제공 및 위탁</strong><br />
+              - 제3자에게 제공되지 않으며, 외부에 위탁하지 않습니다.<br /><br />
 
-              <strong>5. 동의 거부 권리</strong><br/>
-              - 동의하지 않을 수 있으나, 서비스 이용에 제한이 있습니다.<br/><br/>
+              <strong>5. 동의 거부 권리</strong><br />
+              - 동의하지 않을 수 있으나, 서비스 이용에 제한이 있습니다.<br /><br />
 
               위 내용을 충분히 이해하였으며, 이에 동의합니다.
             </p>
