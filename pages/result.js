@@ -39,23 +39,21 @@ export default function ResultPage() {
 
     const q = router.query;
 
-    const newScores = {
+    setScores({
       감정: Number(q["감정"]) || 0,
       문제해결: Number(q["문제해결"]) || 0,
       관계: Number(q["관계"]) || 0,
       회피: Number(q["회피"]) || 0,
-    };
+    });
 
-    const newInfo = {
+    setUserInfo({
       name: q.name || "",
       age: q.age || "",
       gender: q.gender || "",
       mbti: q.mbti || "",
       phone: q.phone || "",
-    };
+    });
 
-    setScores(newScores);
-    setUserInfo(newInfo);
     setLoading(false);
   }, [router.isReady, router.query]);
 
@@ -66,6 +64,7 @@ export default function ResultPage() {
 
   const mainType = pickMainType(scores);
 
+  // Supabase 저장
   useEffect(() => {
     if (loading) return;
     if (!userInfo.name) return;
@@ -77,6 +76,7 @@ export default function ResultPage() {
         gender: userInfo.gender,
         mbti: userInfo.mbti,
         phone: userInfo.phone,
+
         emotion_score: scores.감정,
         problem_score: scores.문제해결,
         relation_score: scores.관계,
@@ -85,9 +85,9 @@ export default function ResultPage() {
       });
 
       if (error) {
-        console.error("❌ 검사 결과 저장 실패:", error);
+        console.error("❌ 결과 저장 실패:", error);
       } else {
-        console.log("✅ 검사 결과 저장 완료!");
+        console.log("✅ 결과 저장 완료");
       }
     };
 
@@ -113,7 +113,6 @@ export default function ResultPage() {
           "상대의 메시지를 ‘감정’과 ‘사실’로 분리해 받아들이는 연습이 도움이 됩니다.",
         ],
       },
-
       문제해결: {
         title: "갈등을 구조적으로 정리하려는 문제해결 중심형 🔧",
         text: [
@@ -131,7 +130,6 @@ export default function ResultPage() {
           "상대의 감정 요약 → 공감 → 해결 순으로 진행하면 효과적입니다.",
         ],
       },
-
       관계: {
         title: "상대의 감정과 관계 유지를 우선하는 관계 중심형 🤝",
         text: [
@@ -147,7 +145,6 @@ export default function ResultPage() {
           "갈등 시 상대의 기분만이 아니라 내 감정도 같은 비중으로 다루는 연습이 필요합니다.",
         ],
       },
-
       회피: {
         title: "현재 갈등보다 감정 소모를 피하고 싶은 회피형 🌫",
         text: [
@@ -160,7 +157,7 @@ export default function ResultPage() {
           "갈등이 겁나는 이유를 차분히 명료화하는 작업이 필요합니다.",
         ],
         direction: [
-          "1) 감정 폭발이 두려움인지, 2) 갈등 자체가 불편한 것인지 구분하면 다음 행동이 쉬워집니다.",
+          "감정 폭발이 두려움인지, 갈등 자체가 불편한 것인지 구분하면 다음 행동이 쉬워집니다.",
         ],
       },
     };
@@ -177,13 +174,8 @@ export default function ResultPage() {
     { name: "회피형", value: scores.회피 },
   ];
 
-  if (loading) return <p>점수를 불러오는 중...</p>;
-
-  const goToRetest = () => {
-    router.push("/test");
-  };
-
-  const goToNextStepPage = () => {
+  const goToRetest = () => router.push("/test");
+  const goToNextStepPage = () =>
     router.push({
       pathname: "/followup",
       query: {
@@ -192,44 +184,36 @@ export default function ResultPage() {
         mbti: userInfo.mbti,
       },
     });
-  };
+
+  if (loading) return <p>결과 불러오는 중...</p>;
 
   return (
     <main className="result-container">
       <section className="result-card">
         <h1 className="title">갈등 대처 유형 결과</h1>
-
         <h2 className="subtitle">대표 유형: {mainType}형</h2>
-
         <p className="highlight">{info.title}</p>
 
-        {/* ✅ 기본 정보 표시 - 수정된 부분 */}
         <h3 className="section-title">기본 정보</h3>
-        <p>이름: {userInfo.name || "-"}</p>
-        <p>나이: {userInfo.age || "-"}</p>
-        <p>성별: {userInfo.gender || "-"}</p>
-        <p>MBTI: {userInfo.mbti || "-"}</p>
-        <p>연락처: {userInfo.phone || "-"}</p>
+        <p>이름: {userInfo.name}</p>
+        <p>나이: {userInfo.age}</p>
+        <p>성별: {userInfo.gender}</p>
+        <p>MBTI: {userInfo.mbti}</p>
+        <p>연락처: {userInfo.phone}</p>
 
         <h3 className="section-title">나의 갈등 대처 특징</h3>
         {info.text.map((t, i) => (
-          <p key={i} className="desc">
-            {t}
-          </p>
+          <p key={i} className="desc">{t}</p>
         ))}
 
         <h3 className="section-title">MBTI와의 연관성</h3>
         {info.improve.map((t, i) => (
-          <p key={i} className="desc">
-            {t}
-          </p>
+          <p key={i} className="desc">{t}</p>
         ))}
 
         <h3 className="section-title">나에게 필요한 방향성</h3>
         {info.direction.map((t, i) => (
-          <p key={i} className="desc">
-            {t}
-          </p>
+          <p key={i} className="desc">{t}</p>
         ))}
 
         <h3 className="section-title">내 점수 그래프</h3>
@@ -239,7 +223,7 @@ export default function ResultPage() {
               <XAxis dataKey="name" stroke="#666" />
               <YAxis stroke="#666" />
               <Tooltip />
-              <Bar dataKey="value" fill="#4B8CF5" animationDuration={1200} />
+              <Bar dataKey="value" fill="#4B8CF5" />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -256,6 +240,7 @@ export default function ResultPage() {
           <button className="btn-outline" onClick={goToRetest}>
             다시 검사하기
           </button>
+
           <button className="btn-primary" onClick={goToNextStepPage}>
             후속 프로그램 안내 보기
           </button>
