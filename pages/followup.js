@@ -1,8 +1,56 @@
 // pages/followup.js
-
 import Link from "next/link";
+import { useState } from "react";
+import supabase from "../lib/supabaseClient"; // 프로젝트에 있는 경로 기준
 
 export default function FollowupPage() {
+  const [form, setForm] = useState({
+    name: "",
+    phone: "",
+    recommender: "",
+  });
+
+  const [submitting, setSubmitting] = useState(false);
+  const [message, setMessage] = useState("");
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setMessage("");
+
+    // 아주 기본적인 검증(초보용/안전용)
+    if (!form.name.trim()) return setMessage("이름을 입력해 주세요.");
+    if (!form.phone.trim()) return setMessage("연락처를 입력해 주세요.");
+
+    try {
+      setSubmitting(true);
+
+      // ✅ Supabase 테이블에 저장 (테이블명은 아래 참고)
+      const { error } = await supabase.from("followup_requests").insert([
+        {
+          name: form.name.trim(),
+          phone: form.phone.trim(),
+          recommender: form.recommender.trim() || null,
+          type: "session_1",
+        },
+      ]);
+
+      if (error) throw error;
+
+      setMessage("신청 정보가 접수되었습니다! 확인 후 연락드리겠습니다.");
+      setForm({ name: "", phone: "", recommender: "" });
+    } catch (err) {
+      console.error(err);
+      setMessage("저장 중 오류가 발생했어요. 잠시 후 다시 시도해 주세요.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <main className="followup-container">
       <section className="followup-card">
@@ -16,90 +64,109 @@ export default function FollowupPage() {
           </p>
         </div>
 
-        {/* 프로그램 설명 영역 */}
+        {/* 프로그램 설명 영역 (번짐 문구로 변경) */}
         <div className="followup-description">
           <p>
-            OO에서는 검사지의 결과를 보다 심층적으로 분석 및{" "}
-            다른 검사지를 통한 성격유형 파악을 통해{" "}
-            <strong>3~4회의 상담 커리큘럼</strong>으로
-            피드백 방향성을 제공하는 후속프로그램을 운영중에 있습니다.
+            <strong>번짐</strong>에서는 검사 결과를 보다 폭넓고 심층적으로 분석하여,
+            참여자분들께서 보다 접근하기 쉬운 방식으로 ‘나 자신’을 탐구할 수 있도록
+            돕는 다양한 프로그램을 운영하고 있습니다.
           </p>
           <p>
-            아래의 신청 방법 중 선호하시는 방법에 따라 신청해주시면,
-            추후 담당자를 통해 연락드리겠습니다.
+            검사 결과를 기반으로 한 <strong>소통연구소 게임</strong>을 통해
+            일상 속 갈등 상황을 자연스럽게 돌아보고,
+            보다 편안한 방식으로 소통 능력을 확장해 보세요.
           </p>
         </div>
 
-        {/* 신청 방법 카드 2개 */}
+        {/* 신청 영역 */}
         <div className="followup-methods">
-          {/* 대면 신청 카드 */}
+          {/* 1회차 신청하기 카드 (폼으로 변경) */}
           <div className="followup-method-card">
-            <h2 className="followup-method-title">대면 신청하기</h2>
-            <p className="followup-method-text">
-              직접 대면 상담으로 보다 안정적인 환경에서
-              갈등 패턴과 감정 반응을 함께 점검합니다.
-            </p>
-            <ul className="followup-list">
-              <li>검사 결과에 대한 심층 피드백</li>
-              <li>갈등 상황에 맞춘 대화 연습 및 역할 연기</li>
-              <li>3~4회기 구성의 맞춤형 상담 커리큘럼</li>
-            </ul>
-            <p className="followup-notice">
-              대면 신청하기를 누를 경우 :{" "}
-              <strong>서포터즈를 통해 안내 및 신청해주시면 됩니다.</strong>
-            </p>
-            <button
-  className="followup-button primary"
-  onClick={() => {
-    alert("서포터즈에게 요일과 시간, 연락처를 남겨주시면 추후 안내를 통해 상담사와 연결시켜드리겠습니다.");
-  }}
->
-  대면 신청하기
-</button>
+            <h2 className="followup-method-title">1회차 신청하기</h2>
 
+            <form onSubmit={handleSubmit} style={{ marginTop: "12px" }}>
+              <div style={{ display: "grid", gap: "10px" }}>
+                <input
+                  name="name"
+                  value={form.name}
+                  onChange={handleChange}
+                  placeholder="이름"
+                  className="followup-input"
+                />
+                <input
+                  name="phone"
+                  value={form.phone}
+                  onChange={handleChange}
+                  placeholder="연락처(휴대폰 번호)"
+                  className="followup-input"
+                />
+                <input
+                  name="recommender"
+                  value={form.recommender}
+                  onChange={handleChange}
+                  placeholder="추천인(선택)"
+                  className="followup-input"
+                />
+
+                <button
+                  className="followup-button primary"
+                  type="submit"
+                  disabled={submitting}
+                >
+                  {submitting ? "접수 중..." : "신청 정보 제출하기"}
+                </button>
+
+                {message && (
+                  <p style={{ marginTop: "6px", lineHeight: 1.5 }}>{message}</p>
+                )}
+              </div>
+            </form>
+
+            <p className="followup-notice" style={{ marginTop: "12px" }}>
+              * 입력한 정보는 신청 안내 및 연락 목적 외에는 사용되지 않습니다.
+            </p>
           </div>
 
-          {/* 인스타 신청 카드 */}
+          {/* 인스타 카드 (설명문구 삭제 + 링크/문구 변경) */}
           <div className="followup-method-card">
-            <h2 className="followup-method-title">인스타그램 신청하기</h2>
-            <p className="followup-method-text">
-              DM으로 간단히 문의를 남기고, 일정과 내용을 조율할 수 있는
-              보다 편안한 신청 방법입니다.
-            </p>
-            <ul className="followup-list">
-              <li>인스타그램 DM으로 간단 신청</li>
-              <li>상담 가능 요일·시간 조율</li>
-              <li>필요 시 추가 안내 자료 제공</li>
-            </ul>
+            <h2 className="followup-method-title">프로그램 안내</h2>
+
             <a
-              href="https://www.instagram.com/wish.story2024?igsh=MXFmYjF1cmxob3V6ZQ=="
+              href="https://www.instagram.com/bunjim21?igsh=enMyZDlvZXF4aXg="
               target="_blank"
               rel="noopener noreferrer"
               className="followup-button secondary"
+              style={{ marginTop: "12px", display: "inline-flex" }}
             >
-              인스타그램 신청하기
+              프로그램 알아보기
             </a>
           </div>
         </div>
 
-        {/* 하단 안내/버튼 영역 */}
+        {/* 하단 버튼 */}
         <div className="followup-footer">
-          <p className="followup-footer-text">
-            지금 고민되는 갈등 상황이나 반복되는 패턴이 있다면,
-            혼자 떠안기보다 함께 정리해 보는 것도 좋은 선택일 수 있어요.
-          </p>
-
           <div className="followup-footer-actions">
             <Link href="/test" className="followup-link-button">
               메인으로 돌아가기
             </Link>
-            {/* 결과 페이지 경로를 /result 로 쓰고 있다면 이렇게 */}
-            {/* <Link href="/result" className="followup-link-button subtle">
-              검사 결과 다시 보기
-            </Link> */}
           </div>
         </div>
       </section>
+
+      {/* input 스타일이 없다면 최소한으로 추가(있으면 무시해도 됨) */}
+      <style jsx>{`
+        .followup-input {
+          width: 100%;
+          padding: 12px 12px;
+          border-radius: 12px;
+          border: 1px solid rgba(0, 0, 0, 0.12);
+          outline: none;
+          font-size: 14px;
+        }
+        .followup-input:focus {
+          border-color: rgba(0, 0, 0, 0.25);
+        }
+      `}</style>
     </main>
   );
 }
