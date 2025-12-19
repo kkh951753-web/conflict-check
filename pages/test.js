@@ -4,6 +4,13 @@ import supabase from "@/lib/supabaseClient";
 import { useState } from "react";
 import { useRouter } from "next/router";
 
+const MBTI_OPTIONS = [
+  "ISTJ","ISFJ","INFJ","INTJ",
+  "ISTP","ISFP","INFP","INTP",
+  "ESTP","ESFP","ENFP","ENTP",
+  "ESTJ","ESFJ","ENFJ","ENTJ",
+];
+
 export default function TestPage() {
   const router = useRouter();
 
@@ -11,7 +18,7 @@ export default function TestPage() {
     name: "",
     age: "",
     gender: "",
-    mbti: "",
+    mbti: "", // 선택사항: ""이면 미선택
     agree: false,
   });
 
@@ -19,33 +26,31 @@ export default function TestPage() {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+
+    // 나이는 숫자만 입력되도록 살짝 가드(UX용)
+    if (name === "age") {
+      const onlyDigits = value.replace(/[^\d]/g, "");
+      setForm((prev) => ({ ...prev, age: onlyDigits }));
+      return;
+    }
+
     setForm((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
   };
 
-  // ✅ Supabase 저장 기능 (연락처 제거)
-  const saveUserInfo = async () => {
-    const { error } = await supabase.from("test_results").insert([
-      {
-        name: form.name,
-        age: parseInt(form.age, 10),
-        gender: form.gender,
-        mbti: form.mbti,
-      },
-    ]);
-
-    if (error) {
-      console.error("❌ Supabase 저장 실패:", error.message);
-    } else {
-      console.log("✅ 사용자 정보 저장 성공");
-    }
-  };
-
   const handleStart = async () => {
-    if (!form.name || !form.age || !form.gender) {
+    // 기본 필수값 체크
+    if (!form.name.trim() || !form.age.trim() || !form.gender) {
       alert("이름, 나이, 성별을 모두 입력해 주세요.");
+      return;
+    }
+
+    // 나이 유효성(너무 빡세지 않게)
+    const ageNum = parseInt(form.age, 10);
+    if (Number.isNaN(ageNum) || ageNum < 1 || ageNum > 120) {
+      alert("나이는 1~120 사이의 숫자로 입력해 주세요.");
       return;
     }
 
@@ -54,29 +59,40 @@ export default function TestPage() {
       return;
     }
 
-    // ✅ Supabase에 저장 요청 (연락처 제외)
+    // MBTI 정규화(드롭다운이라 거의 필요 없지만 안전장치)
+    const mbti = form.mbti ? String(form.mbti).trim().toUpperCase() : "";
+    if (mbti && !MBTI_OPTIONS.includes(mbti)) {
+      alert("MBTI는 목록에서 선택해 주세요.");
+      return;
+    }
+
     try {
+      // ✅ Supabase 저장 (mbti 미선택이면 null)
       const { error } = await supabase.from("test_results").insert([
         {
-          name: form.name,
-          age: parseInt(form.age),
+          name: form.name.trim(),
+          age: ageNum,
           gender: form.gender,
-          mbti: form.mbti,
+          mbti: mbti || null,
           created_at: new Date(),
         },
       ]);
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
-      // 저장 성공 시 다음 페이지로 이동
+      // ✅ 다음 페이지로 이동 (쿼리에도 정규화된 값 전달)
       router.push({
         pathname: "/questions",
-        query: { ...form },
+        query: {
+          name: form.name.trim(),
+          age: String(ageNum),
+          gender: form.gender,
+          mbti: mbti || "",
+          agree: String(form.agree),
+        },
       });
     } catch (err) {
-      console.error("❌ Supabase 저장 오류:", err.message);
+      console.error("❌ Supabase 저장 오류:", err?.message || err);
       alert("오류가 발생했습니다. 다시 시도해 주세요.");
     }
   };
@@ -94,19 +110,33 @@ export default function TestPage() {
 
         <div className="input-group">
           <label>이름</label>
-          <input type="text" name="name" value={form.name} onChange={handleChange} />
-
-          <label>나이</label>
-          <input type="text" name="age" value={form.age} onChange={handleChange} />
-
-          <label>MBTI (선택)</label>
           <input
             type="text"
-            name="mbti"
-            value={form.mbti}
-            placeholder="예: ENTP (선택사항)"
+            name="name"
+            value={form.name}
             onChange={handleChange}
+            placeholder="이름을 입력해 주세요"
           />
+
+          <label>나이</label>
+          <input
+            type="text"
+            name="age"
+            value={form.age}
+            onChange={handleChange}
+            placeholder="숫자만 입력"
+            inputMode="numeric"
+          />
+
+          <label>MBTI (선택)</label>
+          <select name="mbti" value={form.mbti} onChange={handleChange}>
+            <option value="">선택 안 함</option>
+            {MBTI_OPTIONS.map((t) => (
+              <option key={t} value={t}>
+                {t}
+              </option>
+            ))}
+          </select>
 
           <label>성별</label>
           <select name="gender" value={form.gender} onChange={handleChange}>
