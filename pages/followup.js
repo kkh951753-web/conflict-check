@@ -22,14 +22,13 @@ export default function FollowupPage() {
     e.preventDefault();
     setMessage("");
 
-    // 아주 기본적인 검증(초보용/안전용)
+    // 아주 기본적인 검증
     if (!form.name.trim()) return setMessage("이름을 입력해 주세요.");
     if (!form.phone.trim()) return setMessage("연락처를 입력해 주세요.");
 
     try {
       setSubmitting(true);
 
-      // ✅ Supabase 테이블에 저장 (테이블명은 아래 참고)
       const { error } = await supabase.from("followup_requests").insert([
         {
           name: form.name.trim(),
@@ -64,7 +63,7 @@ export default function FollowupPage() {
           </p>
         </div>
 
-        {/* 프로그램 설명 영역 (번짐 문구로 변경) */}
+        {/* 프로그램 설명 영역 */}
         <div className="followup-description">
           <p>
             <strong>번짐</strong>에서는 검사 결과를 보다 폭넓고 심층적으로 분석하여,
@@ -80,7 +79,7 @@ export default function FollowupPage() {
 
         {/* 신청 영역 */}
         <div className="followup-methods">
-          {/* 1회차 신청하기 카드 (폼으로 변경) */}
+          {/* 1회차 신청하기 */}
           <div className="followup-method-card">
             <h2 className="followup-method-title">1회차 신청하기</h2>
 
@@ -104,7 +103,7 @@ export default function FollowupPage() {
                   name="recommender"
                   value={form.recommender}
                   onChange={handleChange}
-                  placeholder="추천인(선택)"
+                  placeholder="추천인"
                   className="followup-input"
                 />
 
@@ -127,7 +126,7 @@ export default function FollowupPage() {
             </p>
           </div>
 
-          {/* 인스타 카드 (설명문구 삭제 + 링크/문구 변경) */}
+          {/* 프로그램 안내 (인스타) */}
           <div className="followup-method-card">
             <h2 className="followup-method-title">프로그램 안내</h2>
 
@@ -141,6 +140,25 @@ export default function FollowupPage() {
               프로그램 알아보기
             </a>
           </div>
+
+          {/* 2~4회차 신청하기 (구글폼) */}
+          <div className="followup-method-card">
+            <h2 className="followup-method-title">2~4회차 신청하기</h2>
+
+            <a
+              href="https://docs.google.com/forms/d/e/1FAIpQLSe6q1po7a0d3yJCWjfaN8AyUXBdsx9rTe5AU6yC_XGujmnlxQ/viewform?usp=sharing&ouid=111347953525023561322"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="followup-button secondary"
+              style={{ marginTop: "12px", display: "inline-flex" }}
+            >
+              구글폼으로 신청하기
+            </a>
+
+            <p className="followup-notice" style={{ marginTop: "10px" }}>
+              * 2~4회차는 별도의 신청 폼을 통해 접수됩니다.
+            </p>
+          </div>
         </div>
 
         {/* 하단 버튼 */}
@@ -153,7 +171,7 @@ export default function FollowupPage() {
         </div>
       </section>
 
-      {/* input 스타일이 없다면 최소한으로 추가(있으면 무시해도 됨) */}
+      {/* 최소 input 스타일 */}
       <style jsx>{`
         .followup-input {
           width: 100%;
