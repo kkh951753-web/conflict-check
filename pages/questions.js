@@ -3,6 +3,7 @@
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { questions } from "../data/questions";
+import styles from "../styles/test.module.css"; // ✅ 모듈 CSS 연결
 
 export default function QuestionsPage() {
   const router = useRouter();
@@ -22,11 +23,10 @@ export default function QuestionsPage() {
     setReady(true);
   }, [router.isReady]);
 
-  if (!ready) return <p className="test-loading">정보 불러오는 중...</p>;
+  if (!ready) return <p className={styles.loading}>정보 불러오는 중...</p>;
 
   const total = questions.length;
   const q = questions[currentIndex];
-
   const progress = Math.round(((currentIndex + 1) / total) * 100);
 
   const handleOptionClick = (option) => {
@@ -63,26 +63,24 @@ export default function QuestionsPage() {
   };
 
   return (
-    <main className="test-page">
-      <div className="test-progress-wrapper">
-        <div className="test-progress-bar">
-          <div
-            className="test-progress-inner"
-            style={{ width: `${progress}%` }}
-          />
+    <main className={styles.page}>
+      <div className={styles.progressWrap}>
+        <div className={styles.progressBar}>
+          <div className={styles.progressInner} style={{ width: `${progress}%` }} />
         </div>
-        <div className="test-progress-text">
+        <div className={styles.progressText}>
           {currentIndex + 1} / {total}
         </div>
       </div>
 
-      <section key={animateKey} className="test-card slide-in">
-        <h2 className="test-question-text">{q.text}</h2>
-        <div className="test-options">
+      <section key={animateKey} className={`${styles.card} ${styles.slideIn}`}>
+        <h2 className={styles.question}>{q.text}</h2>
+
+        <div className={styles.options}>
           {q.options.map((opt, idx) => (
             <button
               key={idx}
-              className="test-option-button"
+              className={styles.optionBtn}
               onClick={() => handleOptionClick(opt)}
             >
               {opt.text}

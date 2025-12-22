@@ -1,17 +1,12 @@
 // pages/result.js
 "use client";
 
+import styles from "../styles/result.module.css";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
-import supabase from "../lib/supabaseClient"; // (현재 파일에서 사용하지 않지만, 기존 유지)
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+
+/* ================= 공통 유틸 ================= */
 
 const MBTI_OPTIONS = [
   "ISTJ","ISFJ","INFJ","INTJ",
@@ -26,297 +21,188 @@ const normalizeMbti = (v) => {
   return MBTI_SET.has(x) ? x : "";
 };
 
-const getMbtiTraits = (mbti) => {
-  if (!mbti || mbti.length !== 4) return null;
-  const [EorI, NorS, TorF, JorP] = mbti.split("");
-  return { EorI, NorS, TorF, JorP };
+const safeNumber = (v) => {
+  const n = parseInt(v, 10);
+  return Number.isFinite(n) ? n : 0;
 };
 
-// 대표유형(mainType) 공통 설명(기존 너의 문장들을 유지/정리)
+const RESULT_STORAGE_KEY = "lastConflictResult";
+
+/* ================= 색상 / 자동 문구 ================= */
+
+const typeColorMap = {
+  감정: { bg: "#EEF2FF", color: "#4B63F5" },
+  문제해결: { bg: "#ECFDF5", color: "#059669" },
+  관계: { bg: "#F5F3FF", color: "#7C3AED" },
+  회피: { bg: "#F3F4F6", color: "#6B7280" },
+};
+
+const misunderstandingMap = {
+  감정: "예민하거나 감정적이라는 오해를 받기 쉽지만, 실제로는 관계에 진지한 편입니다.",
+  문제해결: "차갑고 이성적으로 보일 수 있지만, 갈등을 빨리 정리하고 싶은 의도가 큽니다.",
+  관계: "눈치를 많이 본다는 오해를 받지만, 관계를 소중히 여기는 선택일 뿐입니다.",
+  회피: "무관심해 보일 수 있지만, 감정 소모를 줄이기 위한 방식일 수 있습니다.",
+};
+
+const comboAdviceMap = {
+  감정: {
+    문제해결: "감정을 충분히 표현한 뒤 해결 단계로 넘어가면 갈등이 훨씬 부드러워집니다.",
+    관계: "상대 반응을 살피느라 내 감정을 미루고 있지는 않은지 점검해보세요.",
+    회피: "감정이 클수록 잠시 쉬되, 다시 이야기할 시점을 정해두는 게 중요합니다.",
+  },
+  문제해결: {
+    감정: "해결책보다 먼저 상대의 감정이 정리되었는지 확인해보세요.",
+    관계: "관계를 위해서라도 문제의 핵심은 분명히 짚는 대화가 필요합니다.",
+    회피: "침묵이 오해로 번지지 않도록 최소한의 신호는 남겨보세요.",
+  },
+  관계: {
+    감정: "상대뿐 아니라 나도 충분히 서운할 수 있다는 점을 허용해보세요.",
+    문제해결: "관계를 지키기 위해서라도 문제를 명확히 다루는 것이 도움이 됩니다.",
+    회피: "미루는 침묵이 관계 단절로 보이지 않게 의도를 표현해보세요.",
+  },
+  회피: {
+    감정: "피하고 싶은 마음 뒤에 어떤 감정이 있는지 차분히 들여다보세요.",
+    문제해결: "모든 걸 한 번에 해결하려 하지 않아도 됩니다. 한 단계면 충분해요.",
+    관계: "거리를 두더라도 관계를 끊는 신호로 보이지 않게 표현해보세요.",
+  },
+};
+
+/* ================= 유형 기본 설명 ================= */
+
 const baseDescriptionMap = {
   감정: {
     title: "감정을 먼저 느끼고 반응하는 감정 중심형 💙",
     text: [
-      "상대의 말과 행동에서 마음의 상처를 먼저 느끼고, 감정의 진폭이 행동과 선택에 영향을 주는 편입니다.",
-      "상대의 의도를 빠르게 파악하지만, 분위기 변화에도 민감합니다.",
-    ],
-    improve: [
-      "감정이 먼저 움직이기 때문에 상대의 의도를 과하게 해석할 위험이 있어요.",
-      "상대가 바로 공감해주지 않는다고 해서 ‘내 감정을 무시한다’고 단정 짓지 마세요.",
-      "내적 감정 소용돌이가 판단을 흐릴 수 있으므로 감정 정리 시간을 가져보세요.",
+      "상대의 말과 행동에서 감정적 신호를 빠르게 감지하는 편입니다.",
+      "관계의 진정성과 감정 교류를 중요하게 여깁니다.",
     ],
     direction: [
-      "갈등 상황에서 본인의 감정이 어떤 니즈를 말하는지 기록해보세요.",
-      "상대의 메시지를 ‘감정’과 ‘사실’로 분리해 받아들이는 연습이 도움이 됩니다.",
+      "감정과 사실을 분리해 바라보는 연습이 도움이 됩니다.",
+      "감정을 충분히 표현한 뒤 판단해보세요.",
     ],
   },
-
   문제해결: {
     title: "갈등을 구조적으로 정리하려는 문제해결 중심형 🔧",
     text: [
-      "갈등을 해결 가능한 문제로 바라보고, 합리적인 결론을 내리려는 유형입니다.",
-      "상황을 분석하고 통제하려는 경향이 있어 감정보다 논리적 접근을 우선합니다.",
+      "갈등을 해결 가능한 문제로 인식합니다.",
+      "원인과 구조를 파악하려는 경향이 강합니다.",
     ],
-    improve: [
-      "빠른 해결 의지가 때때로 상대의 감정을 놓칠 수 있어요.",
-      "상대가 아직 감정 정리가 안 된 상태라면 바로 해결 단계로 넘어가지 않는 것이 중요합니다.",
-      "해결책 제시 전, ‘지금 이 이야기를 해결하고 싶은지’ 먼저 물어보세요.",
-    ],
-    direction: [
-      "해결 중심 접근을 유지하되, 감정적 안전지대를 먼저 마련해주는 것이 이상적입니다.",
-      "상대의 감정 요약 → 공감 → 해결 순으로 진행하면 효과적입니다.",
-    ],
+    direction: ["해결 전에 감정 정리가 되었는지 확인해보세요."],
   },
-
   관계: {
-    title: "상대의 감정과 관계 유지를 우선하는 관계 중심형 🤝",
+    title: "관계 유지를 중시하는 관계 중심형 🤝",
     text: [
-      "갈등 상황에서 조화와 관계 유지를 중요하게 생각합니다.",
-      "상대방의 표정, 분위기, 어조에 예민하게 반응하는 경향이 있습니다.",
+      "조화와 관계의 안정성을 중요하게 생각합니다.",
+      "상대의 반응과 분위기에 민감합니다.",
     ],
-    improve: [
-      "자기 희생이 반복되면 감정 고갈이 찾아올 수 있습니다.",
-      "‘상대를 지키는 것’과 ‘나를 지키는 것’ 사이 균형이 필요합니다.",
-    ],
-    direction: [
-      "갈등 시 상대의 기분만이 아니라 내 감정도 같은 비중으로 다루는 연습이 필요합니다.",
-    ],
+    direction: ["상대뿐 아니라 내 감정도 같은 비중으로 다뤄보세요."],
   },
-
   회피: {
-    title: "현재 갈등보다 감정 소모를 피하고 싶은 회피형 🌫",
+    title: "갈등 상황에서 거리를 두려는 회피형 🌫",
     text: [
-      "상대와 다투기보다 상황을 잠시 피하려는 경향이 강합니다.",
-      "심리적 안전이 확보되면 더 건강하게 대화를 이어갈 수 있습니다.",
+      "감정 소모를 줄이기 위해 거리를 두는 편입니다.",
+      "시간이 지나야 대화가 가능한 경우가 많습니다.",
     ],
-    improve: [
-      "회피는 잠깐의 휴식은 되지만 장기적으로 문제를 더욱 키울 수 있어요.",
-      "갈등이 겁나는 이유를 차분히 명료화하는 작업이 필요합니다.",
-    ],
-    direction: [
-      "감정 폭발이 두려움인지, 갈등 자체가 불편한 것인지 구분하면 다음 행동이 쉬워집니다.",
-      "‘지금은 잠깐 쉬고, 언제 다시 이야기하자’처럼 재개 시점을 잡아두면 회피가 ‘전략’이 됩니다.",
-    ],
+    direction: ["회피 대신 ‘언제 다시 이야기할지’를 정해보세요."],
   },
 };
 
-// MBTI별 한 줄 개인화(16개만 관리)
-const mbtiOneLiner = {
-  ISTJ: "원칙과 약속의 기준이 분명해서, 갈등이 생기면 ‘기준 위반’에 특히 민감할 수 있어요.",
-  ISFJ: "상대의 감정을 먼저 살피는 경향이 있어, 갈등에서 내 감정이 뒤로 밀릴 수 있어요.",
-  INFJ: "관계의 의미를 깊게 해석해, 작은 갈등도 ‘관계 전체’로 확장해 생각할 수 있어요.",
-  INTJ: "문제의 구조를 빠르게 잡지만, 감정의 속도를 기다리는 일이 과제로 남을 수 있어요.",
-  ISTP: "감정 소모를 최소화하려는 경향이 있어, 거리두기가 ‘무관심’으로 오해될 수 있어요.",
-  ISFP: "감정의 진정성과 분위기를 중시해, 강한 압박/공격 톤에 특히 힘들 수 있어요.",
-  INFP: "가치와 진심의 영역에서 상처를 받으면 오래 남을 수 있어요. 회복 루틴이 중요해요.",
-  INTP: "감정도 논리로 이해하려 하지만, 실제 대화에선 ‘표현 타이밍’이 과제가 될 수 있어요.",
-  ESTP: "즉각 대응력이 강해 갈등을 빠르게 전환시키는 힘이 있지만, 말이 세게 나갈 수 있어요.",
-  ESFP: "분위기 회복 능력이 좋지만, 불편한 감정을 ‘미루는 방식’이 될 수 있어요.",
-  ENFP: "상대 의도를 다양하게 추측해 생각이 커질 수 있어요. 사실 확인이 안정감을 줍니다.",
-  ENTP: "논쟁을 탐색처럼 느낄 수 있지만 상대는 ‘공격’으로 느낄 수 있어요. 톤 조절이 핵심!",
-  ESTJ: "정리·결정이 빠르지만 상대는 ‘압박/통제’로 느낄 수 있어요. 순서(공감→해결)가 중요해요.",
-  ESFJ: "관계 조화를 위해 애쓰며, 갈등에서 ‘내 감정의 우선순위’를 잃기 쉬워요.",
-  ENFJ: "관계 전체를 조율하려 하지만, 과부하가 오면 감정 소진이 빨라질 수 있어요.",
-  ENTJ: "추진력이 강하지만 감정 확인 단계를 건너뛰면 반발이 생길 수 있어요. 체크인이 도움이 돼요.",
+/* ================= MBTI 연관 설명(참고) ================= */
+
+const MBTI_HINT = {
+  I: "혼자 정리하는 시간이 있어야 감정/생각이 정돈되는 편",
+  E: "대화를 하면서 생각이 정리되고 에너지가 붙는 편",
+  N: "의미/맥락/의도를 먼저 읽고 큰 그림을 선호",
+  S: "사실/상황/구체적 표현을 기준으로 판단하는 편",
+  F: "관계/정서적 납득이 중요해서 말의 온도를 크게 느낄 수 있음",
+  T: "문제/기준/일관성을 중요하게 봐서 해결 중심으로 흐르기 쉬움",
+  J: "정리·결론이 나야 마음이 편해지는 편",
+  P: "열어두고 유연하게 가야 부담이 덜한 편",
 };
 
-// 대표유형 × MBTI 특성(I/E, N/S, T/F, J/P) 보정 문장(‘가벼운 조합형’ 핵심)
-const comboAddons = {
-  감정: {
-    F: [
-      "감정 공감 능력이 강점이라, 관계 회복의 ‘첫 단추’를 잘 끼우는 편이에요.",
-      "다만 감정이 과부하 되면 자기비난으로 빠질 수 있어, 감정-사실 분리 연습이 특히 중요합니다.",
-    ],
-    T: [
-      "감정을 느끼면서도 머리로 정리하려는 힘이 있어, 감정 폭발로 번질 위험은 상대적으로 낮을 수 있어요.",
-      "다만 ‘감정이 생긴 나 자신’을 평가하기보다 감정 자체를 신호로 받아들이는 연습이 도움이 됩니다.",
-    ],
-    N: [
-      "상대의 의도/맥락을 크게 해석하는 경향이 있어, 혼자 생각이 커질 수 있어요. 사실 확인이 안정감을 줍니다.",
-    ],
-    S: [
-      "당장의 말/행동에 반응이 즉각적이라, 빠르게 상처받거나 빠르게 회복하는 편일 수 있어요.",
-    ],
-    I: [
-      "혼자 감정을 정리할 시간이 필요할 수 있어요. ‘잠깐 정리하고 다시 이야기하자’가 효과적입니다.",
-    ],
-    E: [
-      "감정을 말로 풀어야 회복되는 편일 수 있어요. 단, 감정이 고조된 순간엔 짧게 말하고 잠깐 쉬는 것도 좋아요.",
-    ],
-    J: [
-      "마무리/정리가 되어야 마음이 놓이는 편이라, 대화의 ‘끝맺음 문장’을 만들어두면 도움이 됩니다.",
-    ],
-    P: [
-      "흐름 속에서 감정이 바뀔 수 있어요. 결론을 급히 내기보다 ‘지금은 이렇게 느껴’처럼 임시 결론이 좋아요.",
-    ],
-  },
-
-  문제해결: {
-    T: [
-      "해결 전략을 세우는 능력이 강해, 갈등을 ‘정리 가능한 문제’로 만드는 데 장점이 있어요.",
-      "다만 상대가 감정 정리 전이라면 해결책 제시는 ‘압박’으로 느껴질 수 있어요.",
-    ],
-    F: [
-      "해결을 원하면서도 관계 감정선을 고려하려 해, ‘부드러운 해결자’가 되기 쉬워요.",
-      "다만 갈등이 길어지면 감정 피로가 누적될 수 있어, 타임박스를 두는 게 도움이 됩니다.",
-    ],
-    N: [
-      "큰 그림으로 해법을 찾는 장점이 있어요. 대신 실행 단계에서는 구체적인 합의(언제/어떻게)를 남겨보세요.",
-    ],
-    S: [
-      "현실적인 조치로 빠르게 안정시키는 힘이 있어요. 대신 감정적 납득이 뒤따르는지도 점검해 주세요.",
-    ],
-    I: [
-      "혼자 정리 후 말하는 편이라, 대화 전에 핵심을 메모해두면 더 명확해져요.",
-    ],
-    E: [
-      "말하며 정리되는 편이라, 브레인스토밍처럼 ‘가능한 해결안’을 함께 뽑아보는 방식이 잘 맞아요.",
-    ],
-    J: [
-      "결론을 빠르게 내릴 수 있어요. 상대가 따라올 시간을 주는 ‘중간 체크인’을 추가하면 좋아요.",
-    ],
-    P: [
-      "유연한 대안 탐색이 강점이에요. 다만 ‘결정 미루기’로 비치지 않게 최소 합의는 잡아두세요.",
-    ],
-  },
-
-  관계: {
-    F: [
-      "관계 유지 감각이 뛰어나서, 갈등의 톤을 부드럽게 만드는 역할을 자주 맡게 돼요.",
-      "다만 ‘내 마음을 미루는 습관’이 생기지 않게 경계선(나는 무엇이 불편한가)을 세워보세요.",
-    ],
-    T: [
-      "관계를 지키면서도 기준과 원칙을 놓치지 않으려 해, ‘공정한 조율자’가 될 수 있어요.",
-      "다만 너무 합리적으로만 조율하면 상대는 ‘차갑다’고 느낄 수 있어요. 표현에 온도를 더해보세요.",
-    ],
-    N: [
-      "관계를 ‘의미’로 바라보는 힘이 있어요. 다만 의미가 커질수록 부담도 커질 수 있어요.",
-    ],
-    S: [
-      "일상 속 배려로 관계를 회복시키는 힘이 있어요. 다만 불편했던 사실도 함께 다뤄야 반복을 막을 수 있어요.",
-    ],
-    I: [
-      "조용히 배려하며 버티는 편일 수 있어요. ‘나도 힘들어’라는 한 문장을 연습해두면 좋아요.",
-    ],
-    E: [
-      "분위기를 살리며 관계를 이어가는 힘이 있어요. 대신 내 속마음도 놓치지 않게 체크해 주세요.",
-    ],
-    J: [
-      "관계를 안정적으로 만들고 싶어해요. 규칙/약속을 ‘부드럽게 합의’하는 방식이 특히 잘 맞습니다.",
-    ],
-    P: [
-      "상대 흐름에 맞추는 유연함이 있어요. 다만 중요한 이슈는 ‘언제 다시 이야기할지’만큼은 잡아두세요.",
-    ],
-  },
-
-  회피: {
-    I: [
-      "혼자 정리 시간이 꼭 필요한 편이라, 잠깐 거리를 두는 전략이 회복에 도움이 될 수 있어요.",
-      "다만 ‘영구 회피’가 되지 않도록, 대화 재개 시점을 미리 잡아두면 좋아요.",
-    ],
-    E: [
-      "회피를 하더라도 결국 대화로 풀고 싶은 욕구가 남을 수 있어요.",
-      "감정이 올라올 때는 잠깐 멈추고, 짧은 문장으로 ‘지금은 쉬고 싶다’를 표현해보세요.",
-    ],
-    N: [
-      "갈등을 ‘의미 있게’ 해석하다가 부담이 커져 회피로 이어질 수 있어요. 지금 필요한 건 ‘한 단계만’ 해결하는 것일 수 있어요.",
-    ],
-    S: [
-      "당장의 불편을 피하려는 회피가 생길 수 있어요. 작은 행동 합의(예: 톤, 시간, 장소)부터 시작해보세요.",
-    ],
-    T: [
-      "감정 소모를 줄이려는 전략으로 회피가 나타날 수 있어요. 대신 ‘언제 다시 이야기할지’의 구조를 만들어두면 좋아요.",
-    ],
-    F: [
-      "상대 감정에 휘말릴까 봐 회피가 강해질 수 있어요. 감정선은 존중하되, 내 한계를 말로 설정하는 연습이 필요해요.",
-    ],
-    J: [
-      "끝이 안 보이면 피로해질 수 있어요. 대화에 ‘종료 조건’을 정해두면 회피가 줄어듭니다.",
-    ],
-    P: [
-      "압박감이 강하면 회피가 나올 수 있어요. ‘지금은 어렵고, 내일 10분만 이야기하자’처럼 작게 잡아보세요.",
-    ],
-  },
+const explainMbtiRelation = (mbti) => {
+  const x = normalizeMbti(mbti);
+  if (!x) return [];
+  return [
+    { dim: x[0], text: MBTI_HINT[x[0]] },
+    { dim: x[1], text: MBTI_HINT[x[1]] },
+    { dim: x[2], text: MBTI_HINT[x[2]] },
+    { dim: x[3], text: MBTI_HINT[x[3]] },
+  ].filter((v) => v.text);
 };
 
 export default function ResultPage() {
   const router = useRouter();
 
-  const [userInfo, setUserInfo] = useState({
-    name: "-",
-    age: "-",
-    gender: "-",
-    mbti: "",
-    phone: "-",
-  });
-
-  const [scores, setScores] = useState({
-    감정: 0,
-    문제해결: 0,
-    관계: 0,
-    회피: 0,
-  });
-
+  const [userInfo, setUserInfo] = useState({ name: "-", age: "-", gender: "-", mbti: "" });
+  const [scores, setScores] = useState({ 감정: 0, 문제해결: 0, 관계: 0, 회피: 0 });
   const [loading, setLoading] = useState(true);
 
-  // 쿼리 파라미터 불러오기
   useEffect(() => {
     if (!router.isReady) return;
 
-    const q = router.query;
+    const q = router.query || {};
 
-    const mbti = normalizeMbti(q.mbti);
-
-    const newInfo = {
-      name: q.name || "-",
-      age: q.age || "-",
-      gender: q.gender || "-",
-      mbti, // "" or valid MBTI
-      phone: q.phone || "-",
+    const scoresFromQuery = {
+      감정: safeNumber(q["감정"]),
+      문제해결: safeNumber(q["문제해결"]),
+      관계: safeNumber(q["관계"]),
+      회피: safeNumber(q["회피"]),
     };
 
-    const newScores = {
-      감정: parseInt(q["감정"] || 0, 10),
-      문제해결: parseInt(q["문제해결"] || 0, 10),
-      관계: parseInt(q["관계"] || 0, 10),
-      회피: parseInt(q["회피"] || 0, 10),
+    const hasQueryScores =
+      scoresFromQuery.감정 + scoresFromQuery.문제해결 + scoresFromQuery.관계 + scoresFromQuery.회피 > 0;
+
+    let payload = null;
+    if (!hasQueryScores && typeof window !== "undefined") {
+      try {
+        const raw = window.localStorage.getItem(RESULT_STORAGE_KEY);
+        payload = raw ? JSON.parse(raw) : null;
+      } catch {
+        payload = null;
+      }
+    }
+
+    const finalUserInfo = {
+      name: q.name || payload?.userInfo?.name || "-",
+      age: q.age || payload?.userInfo?.age || "-",
+      gender: q.gender || payload?.userInfo?.gender || "-",
+      mbti: normalizeMbti(q.mbti || payload?.userInfo?.mbti || ""),
     };
 
-    setUserInfo(newInfo);
-    setScores(newScores);
+    const finalScores = hasQueryScores
+      ? scoresFromQuery
+      : payload?.scores || { 감정: 0, 문제해결: 0, 관계: 0, 회피: 0 };
+
+    setUserInfo(finalUserInfo);
+    setScores(finalScores);
     setLoading(false);
-  }, [router.isReady]);
+  }, [router.isReady, router.query]);
 
-  // 로딩 이후 대표유형 계산(안정)
-  const mainType = useMemo(() => {
-    const entries = Object.entries(scores);
+  const { mainType, subType, tiedTop, sortedEntries, gapToSecond } = useMemo(() => {
+    const order = ["감정", "문제해결", "관계", "회피"];
+    const entries = order.map((k) => [k, scores[k] ?? 0]);
     entries.sort((a, b) => b[1] - a[1]);
-    return entries[0]?.[0] || "감정";
+
+    const mainType = entries[0][0];
+    const mainScore = entries[0][1];
+
+    const tiedTop = entries.filter(([, v]) => v === mainScore && v > 0).map(([k]) => k);
+
+    const subType =
+      tiedTop.length > 1 ? null : entries[1] && entries[1][1] > 0 ? entries[1][0] : null;
+
+    const gapToSecond = entries[1] ? entries[0][1] - entries[1][1] : 0;
+
+    return { mainType, subType, tiedTop, sortedEntries: entries, gapToSecond };
   }, [scores]);
 
+  const comboAdvice = useMemo(() => {
+    if (!mainType || !subType) return null;
+    return comboAdviceMap?.[mainType]?.[subType] || null;
+  }, [mainType, subType]);
+
   const info = baseDescriptionMap[mainType] || baseDescriptionMap["감정"];
-
-  const traits = useMemo(() => getMbtiTraits(userInfo.mbti), [userInfo.mbti]);
-
-  // 조합형 문장 생성
-  const mbtiComboLines = useMemo(() => {
-    if (!traits) return [];
-    const byType = comboAddons[mainType];
-    if (!byType) return [];
-
-    const lines = [];
-
-    // 우선순위: F/T → N/S → I/E → J/P (원하면 바꿀 수 있음)
-    if (byType[traits.TorF]) lines.push(...byType[traits.TorF]);
-    if (byType[traits.NorS]) lines.push(...byType[traits.NorS]);
-    if (byType[traits.EorI]) lines.push(...byType[traits.EorI]);
-    if (byType[traits.JorP]) lines.push(...byType[traits.JorP]);
-
-    // 너무 길면 4~5줄로 제한(가벼운 조합형 유지)
-    return lines.slice(0, 5);
-  }, [traits, mainType]);
-
-  const oneLiner = userInfo.mbti ? mbtiOneLiner[userInfo.mbti] : "";
 
   const chartData = [
     { name: "감정형", value: scores.감정 },
@@ -325,90 +211,179 @@ export default function ResultPage() {
     { name: "회피형", value: scores.회피 },
   ];
 
+  const mbtiTips = useMemo(() => explainMbtiRelation(userInfo.mbti), [userInfo.mbti]);
+
+  const scoreInsight = useMemo(() => {
+    const total = Object.values(scores).reduce((a, b) => a + (Number(b) || 0), 0);
+    const top = sortedEntries?.[0];
+    const second = sortedEntries?.[1];
+
+    if (!total || !top) {
+      return "점수가 아직 충분히 입력되지 않았어요. 다시 검사하거나 입력값을 확인해 주세요.";
+    }
+
+    if (tiedTop.length > 1) {
+      return "두 가지 이상 성향이 비슷하게 나타났어요. 상황/상대/스트레스 강도에 따라 반응이 달라질 수 있습니다.";
+    }
+
+    if (second && gapToSecond >= 3) {
+      return "대표 유형이 비교적 뚜렷하게 나타났어요. 갈등 상황에서 이 패턴이 자동으로 먼저 올라올 가능성이 큽니다.";
+    }
+
+    return "대표 유형은 정해졌지만, 2순위 성향도 꽤 가까워요. 상황에 따라 보조경향이 함께 작동할 수 있습니다.";
+  }, [scores, sortedEntries, gapToSecond, tiedTop.length]);
+
   const goToRetest = () => router.push("/test");
-  const goToNextStepPage = () =>
+
+  const goToNextStepPage = () => {
+    if (typeof window !== "undefined") {
+      try {
+        window.localStorage.setItem(
+          RESULT_STORAGE_KEY,
+          JSON.stringify({
+            userInfo,
+            scores,
+            mainType,
+            subType: subType || "",
+            savedAt: Date.now(),
+          })
+        );
+      } catch {}
+    }
+
     router.push({
       pathname: "/followup",
       query: {
         mainType,
+        subType: subType || "",
         name: userInfo.name,
-        mbti: userInfo.mbti || "-",
+        mbti: userInfo.mbti || "",
       },
     });
+  };
 
-  if (loading) return <p>결과 불러오는 중...</p>;
+  if (loading) return <p className={styles.loading}>결과 불러오는 중...</p>;
 
   return (
-    <main className="result-container">
-      <section className="result-card">
-        <h1 className="title">갈등 대처 유형 결과</h1>
-        <h2 className="subtitle">대표 유형: {mainType}형</h2>
-        <p className="highlight">{info.title}</p>
+    <main className={styles.container}>
+      <section className={styles.card}>
+        <h1 className={styles.title}>나의 R-STYLE 결과</h1>
 
-        <h3 className="section-title">기본 정보</h3>
-        <p>이름: {userInfo.name}</p>
-        <p>나이: {userInfo.age}</p>
-        <p>성별: {userInfo.gender}</p>
-        <p>MBTI: {userInfo.mbti ? userInfo.mbti : "-"}</p>
-        <p>연락처: {userInfo.phone}</p>
 
-        <h3 className="section-title">나의 갈등 대처 특징</h3>
-        {info.text.map((t, i) => (
-          <p key={i} className="desc">
-            {t}
+        <h2 className={styles.subtitle} style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+          <span>대표 유형: {mainType}형</span>
+
+          {subType && (
+            <span
+              className={styles.subBadge}
+              style={{
+                backgroundColor: typeColorMap[subType].bg,
+                color: typeColorMap[subType].color,
+              }}
+            >
+              보조 경향 · {subType}형
+            </span>
+          )}
+        </h2>
+
+        {tiedTop.length > 1 && (
+          <p className={styles.desc}>
+            <b>{tiedTop.join("형 · ")}형</b> 성향이 비슷하게 나타났어요.
           </p>
-        ))}
-
-        <h3 className="section-title">MBTI와의 연관성</h3>
-
-        {/* MBTI가 없으면 안내 */}
-        {!userInfo.mbti ? (
-          <p className="desc">
-            MBTI를 선택하지 않아, 대표 유형({mainType}형) 중심으로 기본 해석을 제공했어요.
-          </p>
-        ) : (
-          <>
-            {oneLiner && <p className="desc">• {oneLiner}</p>}
-            {mbtiComboLines.map((t, i) => (
-              <p key={i} className="desc">
-                {t}
-              </p>
-            ))}
-          </>
         )}
 
-        <h3 className="section-title">나에게 필요한 방향성</h3>
-        {info.direction.map((t, i) => (
-          <p key={i} className="desc">
+        <p className={styles.desc} style={{ marginTop: "8px" }}>
+          <b>대표 유형</b>은 갈등에서 내가 가장 먼저 자동 반응하기 쉬운 방식이고,{" "}
+          <b>보조 경향</b>은 상황에 따라 대표 유형을 “보완/가속/완화”시키는 성향이에요.
+          <br />
+          {scoreInsight}
+        </p>
+
+        {comboAdvice && (
+          <p
+            className={styles.tipBox}
+            style={{
+              borderLeft: `4px solid ${typeColorMap[mainType].color}`,
+            }}
+          >
+            💡 <b>이 조합을 위한 한 가지 팁</b>
+            <br />
+            {comboAdvice}
+          </p>
+        )}
+
+        <p className={styles.desc} style={{ marginTop: "6px" }}>
+          ⚠️ <b>자주 받는 오해</b> · {misunderstandingMap[mainType]}
+        </p>
+
+        <p className={styles.highlight}>{info.title}</p>
+
+        <h3 className={styles.sectionTitle}>나의 갈등 대처 특징</h3>
+        {info.text.map((t, i) => (
+          <p key={i} className={styles.desc}>
             {t}
           </p>
         ))}
 
-        <h3 className="section-title">내 점수 그래프</h3>
-        <div className="chart-wrapper">
+        <h3 className={styles.sectionTitle}>나에게 필요한 방향성</h3>
+        {info.direction.map((t, i) => (
+          <p key={i} className={styles.desc}>
+            {t}
+          </p>
+        ))}
+
+        <h3 className={styles.sectionTitle}>MBTI와의 연관성 (참고)</h3>
+        {userInfo.mbti ? (
+          <>
+            <p className={styles.desc}>
+              입력한 MBTI는 <b>{userInfo.mbti}</b>예요. 이 검사는 MBTI를 대체하는 것이 아니라,
+              갈등 상황에서의 반응 패턴을 따로 측정하고{" "}
+              <b>MBTI 성향이 그 패턴에 어떤 식으로 영향을 줄 수 있는지</b> 참고로 설명합니다.
+            </p>
+
+            {mbtiTips.length > 0 ? (
+              <ul className={styles.list}>
+                {mbtiTips.map((m, i) => (
+                  <li key={i}>
+                    <b>{m.dim}</b>: {m.text}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className={styles.muted}>MBTI 설명 데이터를 찾지 못했어요.</p>
+            )}
+          </>
+        ) : (
+          <p className={styles.muted}>
+            MBTI를 입력하지 않았거나 형식이 올바르지 않아요. (예: INFP)
+          </p>
+        )}
+
+        <h3 className={styles.sectionTitle}>내 점수 그래프</h3>
+        <div className={styles.chartWrap}>
           <ResponsiveContainer width="100%" height={260}>
             <BarChart data={chartData}>
-              <XAxis dataKey="name" stroke="#666" />
-              <YAxis stroke="#666" />
+              <XAxis dataKey="name" />
+              <YAxis />
               <Tooltip />
-              <Bar dataKey="value" fill="#4B8CF5" animationDuration={1200} />
+              <Bar dataKey="value" fill="#4B8CF5" />
             </BarChart>
           </ResponsiveContainer>
         </div>
       </section>
 
-      <section className="result-card next-step-card">
-        <h2 className="section-title">7. 다음 단계로</h2>
-        <p className="desc">
+      <section className={`${styles.card} ${styles.nextCard}`}>
+        <h2 className={styles.sectionTitle}>다음 단계</h2>
+        <p className={styles.desc}>
           지금 결과를 바탕으로 나의 패턴을 더 깊게 이해하거나, 후속 프로그램에
           참여해 실제 갈등 장면에서 적용해볼 수 있어요.
         </p>
 
-        <div className="button-row">
-          <button className="btn-outline" onClick={goToRetest}>
+        <div className={styles.buttonRow}>
+          <button className={styles.btnOutline} onClick={goToRetest}>
             다시 검사하기
           </button>
-          <button className="btn-primary" onClick={goToNextStepPage}>
+          <button className={styles.btnPrimary} onClick={goToNextStepPage}>
             후속 프로그램 안내 보기
           </button>
         </div>

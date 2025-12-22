@@ -1,5 +1,7 @@
+// pages/test.js
 "use client";
 
+import styles from "../styles/intro.module.css";
 import supabase from "@/lib/supabaseClient";
 import { useState } from "react";
 import { useRouter } from "next/router";
@@ -23,11 +25,11 @@ export default function TestPage() {
   });
 
   const [showTerms, setShowTerms] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
 
-    // 나이는 숫자만 입력되도록 살짝 가드(UX용)
     if (name === "age") {
       const onlyDigits = value.replace(/[^\d]/g, "");
       setForm((prev) => ({ ...prev, age: onlyDigits }));
@@ -41,13 +43,13 @@ export default function TestPage() {
   };
 
   const handleStart = async () => {
-    // 기본 필수값 체크
+    if (submitting) return;
+
     if (!form.name.trim() || !form.age.trim() || !form.gender) {
       alert("이름, 나이, 성별을 모두 입력해 주세요.");
       return;
     }
 
-    // 나이 유효성(너무 빡세지 않게)
     const ageNum = parseInt(form.age, 10);
     if (Number.isNaN(ageNum) || ageNum < 1 || ageNum > 120) {
       alert("나이는 1~120 사이의 숫자로 입력해 주세요.");
@@ -59,140 +61,150 @@ export default function TestPage() {
       return;
     }
 
-    // MBTI 정규화(드롭다운이라 거의 필요 없지만 안전장치)
     const mbti = form.mbti ? String(form.mbti).trim().toUpperCase() : "";
     if (mbti && !MBTI_OPTIONS.includes(mbti)) {
       alert("MBTI는 목록에서 선택해 주세요.");
       return;
     }
 
+    setSubmitting(true);
     try {
-      // ✅ Supabase 저장 (mbti 미선택이면 null)
-      const { error } = await supabase.from("test_results").insert([
-        {
-          name: form.name.trim(),
-          age: ageNum,
-          gender: form.gender,
-          mbti: mbti || null,
-          created_at: new Date(),
-        },
-      ]);
+      const payload = {
+        name: form.name.trim(),
+        age: ageNum,
+        gender: form.gender,
+        mbti: mbti || null,
+      };
 
+      const { error } = await supabase.from("test_results").insert([payload]);
       if (error) throw error;
 
-      // ✅ 다음 페이지로 이동 (쿼리에도 정규화된 값 전달)
       router.push({
         pathname: "/questions",
         query: {
-          name: form.name.trim(),
-          age: String(ageNum),
-          gender: form.gender,
+          name: payload.name,
+          age: String(payload.age),
+          gender: payload.gender,
           mbti: mbti || "",
-          agree: String(form.agree),
+          agree: "true",
         },
       });
     } catch (err) {
       console.error("❌ Supabase 저장 오류:", err?.message || err);
       alert("오류가 발생했습니다. 다시 시도해 주세요.");
+      setSubmitting(false);
     }
   };
 
   return (
-    <main className="page">
-      <div className="card" style={{ padding: "36px" }}>
-        <h1 className="title" style={{ textAlign: "center", marginBottom: "10px" }}>
-          갈등 대처 유형 테스트
-        </h1>
+    <main className={styles.page}>
+      <div className={styles.card}>
 
-        <p className="subtitle" style={{ textAlign: "center", marginBottom: "24px" }}>
-          간단한 정보를 입력하고 검사를 시작해 보세요.
-        </p>
+        <div className={styles.formGroup}>
+          {/* ✅ 이름(6) + 나이(4) 한 줄 */}
+          <div className={styles.formRowNameAge}>
+            <div className={styles.formField}>
+              <label>이름</label>
+              <input
+                className={styles.control}
+                type="text"
+                name="name"
+                value={form.name}
+                onChange={handleChange}
+                placeholder="이름을 입력해 주세요"
+                autoComplete="name"
+              />
+            </div>
 
-        <div className="input-group">
-          <label>이름</label>
-          <input
-            type="text"
-            name="name"
-            value={form.name}
-            onChange={handleChange}
-            placeholder="이름을 입력해 주세요"
-          />
+            <div className={styles.formField}>
+              <label>나이</label>
+              <input
+                className={styles.control}
+                type="text"
+                name="age"
+                value={form.age}
+                onChange={handleChange}
+                placeholder="숫자만 입력"
+                inputMode="numeric"
+                autoComplete="off"
+              />
+            </div>
+          </div>
 
-          <label>나이</label>
-          <input
-            type="text"
-            name="age"
-            value={form.age}
-            onChange={handleChange}
-            placeholder="숫자만 입력"
-            inputMode="numeric"
-          />
+          {/* ✅ MBTI + 성별 한 줄 */}
+          <div className={styles.formRowTwo}>
+            <div className={styles.formField}>
+              <label>MBTI (선택)</label>
+              <select
+                className={styles.control}
+                name="mbti"
+                value={form.mbti}
+                onChange={handleChange}
+              >
+                <option value="">선택 안 함</option>
+                {MBTI_OPTIONS.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          <label>MBTI (선택)</label>
-          <select name="mbti" value={form.mbti} onChange={handleChange}>
-            <option value="">선택 안 함</option>
-            {MBTI_OPTIONS.map((t) => (
-              <option key={t} value={t}>
-                {t}
-              </option>
-            ))}
-          </select>
-
-          <label>성별</label>
-          <select name="gender" value={form.gender} onChange={handleChange}>
-            <option value="">선택해 주세요</option>
-            <option value="남성">남성</option>
-            <option value="여성">여성</option>
-          </select>
+            <div className={styles.formField}>
+              <label>성별</label>
+              <select
+                className={styles.control}
+                name="gender"
+                value={form.gender}
+                onChange={handleChange}
+              >
+                <option value="">선택해 주세요</option>
+                <option value="남성">남성</option>
+                <option value="여성">여성</option>
+              </select>
+            </div>
+          </div>
         </div>
 
-        <div style={{ marginTop: "16px" }}>
-          <label>
+        <div className={styles.agreeRow}>
+          <label className={styles.agreeLabel}>
             <input
               type="checkbox"
               name="agree"
               checked={form.agree}
               onChange={handleChange}
-              style={{ marginRight: "8px" }}
+              disabled={submitting}
             />
-            개인정보 수집 · 이용에 동의합니다 (필수)
-          </label>
+            <span>개인정보 수집 · 이용에 동의합니다 (필수)</span>
 
-          <button
-            type="button"
-            onClick={() => setShowTerms(true)}
-            style={{
-              marginLeft: "12px",
-              fontSize: "0.9rem",
-              textDecoration: "underline",
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              color: "#555",
-            }}
-          >
-            약관 보기
-          </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setShowTerms(true);
+              }}
+              className={styles.termsInline}
+              disabled={submitting}
+            >
+              약관 보기
+            </button>
+          </label>
         </div>
 
         <button
-          className="primary-btn-blue"
-          style={{
-            width: "100%",
-            marginTop: "24px",
-            opacity: form.agree ? 1 : 0.6,
-            cursor: form.agree ? "pointer" : "not-allowed",
-          }}
+          className={styles.primaryButton}
           onClick={handleStart}
-          disabled={!form.agree}
+          disabled={!form.agree || submitting}
+          style={{ opacity: !form.agree || submitting ? 0.6 : 1 }}
         >
-          검사 시작하기
+          {submitting ? "저장 중..." : "검사 시작하기"}
         </button>
       </div>
 
-      {/* 약관 모달 */}
       {showTerms && (
         <div
+          onClick={() => setShowTerms(false)}
           style={{
             position: "fixed",
             top: 0,
@@ -204,14 +216,16 @@ export default function TestPage() {
             justifyContent: "center",
             alignItems: "center",
             zIndex: 1000,
+            padding: "16px",
           }}
         >
           <div
+            onClick={(e) => e.stopPropagation()}
             style={{
               backgroundColor: "#fff",
               padding: "24px",
-              borderRadius: "8px",
-              width: "90%",
+              borderRadius: "12px",
+              width: "100%",
               maxWidth: "600px",
               maxHeight: "80vh",
               overflowY: "auto",
@@ -257,6 +271,7 @@ export default function TestPage() {
             </p>
 
             <button
+              type="button"
               onClick={() => setShowTerms(false)}
               style={{
                 marginTop: "16px",
@@ -264,7 +279,7 @@ export default function TestPage() {
                 backgroundColor: "#6C63FF",
                 color: "#fff",
                 border: "none",
-                borderRadius: "5px",
+                borderRadius: "10px",
                 cursor: "pointer",
               }}
             >

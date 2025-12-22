@@ -1,0 +1,255 @@
+/* styles/intro.module.css  (완성형 - 이름/나이 한줄(6:4), MBTI/성별 한줄, 약관보기 모바일 크게 보임 해결 포함) */
+
+:root {
+  --card-bg: rgba(255, 255, 255, 0.9);
+  --card-border: rgba(143, 175, 91, 0.18);
+
+  --text-strong: #2f3a1f;
+  --text-sub: #6b705c;
+
+  --control-bg: rgba(255, 255, 255, 0.92);
+  --control-border: rgba(143, 175, 91, 0.28);
+  --control-border-focus: rgba(143, 175, 91, 0.75);
+  --control-ring: rgba(143, 175, 91, 0.18);
+
+  --primary-1: #8baf5b;
+  --primary-2: #7e9c6f;
+  --primary-shadow: rgba(139, 175, 91, 0.26);
+
+  --intro-bg-image: url("/bg/meadow-animals.png");
+}
+
+/* ===== 페이지 배경 ===== */
+.page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 88px 16px 48px;
+
+  background-image:
+    linear-gradient(
+      180deg,
+      rgba(251, 250, 246, 0.85) 0%,
+      rgba(238, 242, 232, 0.65) 70%,
+      rgba(238, 242, 232, 0.75) 100%
+    ),
+    var(--intro-bg-image);
+
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center bottom;
+}
+
+/* ===== 카드 ===== */
+.card {
+  width: 100%;
+  max-width: 620px;
+  background: var(--card-bg);
+  backdrop-filter: blur(10px);
+  border-radius: 28px;
+  border: 1px solid var(--card-border);
+  padding: 44px 44px 34px;
+
+  box-shadow:
+    0 18px 50px rgba(15, 23, 42, 0.12),
+    0 6px 18px rgba(15, 23, 42, 0.06);
+}
+
+/* ===== 제목 ===== */
+.title {
+  font-size: 30px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: var(--text-strong);
+  text-align: center;
+  margin: 0 0 16px;
+}
+
+/* ===== 폼 ===== */
+.formGroup {
+  display: grid;
+  gap: 12px;
+}
+
+.formGroup label {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-strong);
+  margin-top: 8px;
+}
+
+.control {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid var(--control-border);
+  background: var(--control-bg);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.control:focus {
+  border-color: var(--control-border-focus);
+  box-shadow: 0 0 0 5px var(--control-ring);
+}
+
+/* ✅ 한 줄 레이아웃용 */
+.formField {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ✅ 이름(6) + 나이(4) */
+.formRowNameAge {
+  display: grid;
+  grid-template-columns: 6fr 4fr;
+  gap: 12px;
+}
+
+/* ✅ MBTI + 성별 (5:5 느낌) */
+.formRowTwo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* ===== 약관 ===== */
+.agreeRow {
+  margin-top: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.agreeLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--text-strong);
+
+  flex-wrap: wrap;
+  row-gap: 6px;
+  line-height: 1.4;
+}
+
+.agreeLabel input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary-1);
+  flex: 0 0 auto;
+}
+
+/* ✅ 모바일에서 "버튼처럼 크게" 보이는 문제 해결 + 클래스명 일치(termsInline) */
+.termsInline,
+.termsLink {
+  margin-left: 6px;
+  padding: 0;
+  background: none;
+  border: none;
+
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-sub);
+
+  cursor: pointer;
+  text-decoration: underline;
+
+  line-height: 1;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+/* ===== 버튼 ===== */
+.primaryButton {
+  width: 100%;
+  margin-top: 20px;
+  padding: 14px 18px;
+  border-radius: 999px;
+  border: 0;
+  background: linear-gradient(135deg, var(--primary-1), var(--primary-2));
+  color: #fff;
+  font-size: 15px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 14px 34px var(--primary-shadow);
+}
+
+.primaryButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* ===== 모바일 ===== */
+@media (max-width: 480px) {
+  .page {
+    padding: 24px 12px;
+    align-items: center;
+  }
+
+  .card {
+    max-width: 360px;
+    padding: 18px 16px 14px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.86);
+  }
+
+  .title {
+    font-size: 20px;
+    margin-bottom: 10px;
+  }
+
+  .formGroup {
+    gap: 8px;
+  }
+
+  .formGroup label {
+    font-size: 12px;
+  }
+
+  .control {
+    padding: 11px 12px;
+    font-size: 13px;
+    border-radius: 14px;
+    min-width: 0; /* ✅ grid 안에서 overflow 방지(모바일 필수) */
+  }
+
+  .agreeRow {
+    margin-top: 12px;
+    padding-top: 10px;
+  }
+
+  .agreeLabel {
+    font-size: 13px;
+  }
+
+  /* ✅ 모바일에서도 "두 개 한 줄" 유지 */
+  .formRowNameAge {
+    grid-template-columns: 6fr 4fr; /* 이름/나이 비율 유지 */
+    gap: 10px;
+  }
+
+  .formRowTwo {
+    grid-template-columns: 1fr 1fr; /* MBTI/성별 한 줄 */
+    gap: 10px;
+  }
+
+  /* ✅ 약관 보기 */
+  .termsInline,
+  .termsLink {
+    font-size: 0.7rem;
+    padding: 2px 0;
+  }
+
+  .primaryButton {
+    margin-top: 14px;
+    padding: 12px 16px;
+    font-size: 14px;
+  }
+}

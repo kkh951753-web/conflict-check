@@ -1,0 +1,268 @@
+:root{
+  --olive-900:#2d342a;
+  --olive-700:#4f5c45;
+  --olive-600:#6f7f5f;
+  --olive-200:#dde6d5;
+  --olive-100:#eef2ea;
+}
+
+/* ===== Page / Card ===== */
+.page{
+  min-height: 100vh;
+  padding: 40px 16px;
+  display:flex;
+  justify-content:center;
+  background: radial-gradient(circle at 20% 15%, #f4f6f2 0%, #e7efe2 55%, #dfe9da 100%);
+}
+
+.card{
+  width: 100%;
+  max-width: 880px;
+  background: rgba(255,255,255,0.92);
+  border-radius: 22px;
+  padding: 26px 22px;
+  box-shadow: 0 18px 45px rgba(0,0,0,0.12);
+  backdrop-filter: blur(6px);
+}
+
+/* ===== Advice Box ===== */
+.adviceBox{
+  margin-bottom: 22px;
+  padding: 18px 16px;
+  border-radius: 18px;
+  background: #f8faff;
+  border: 1px solid rgba(111,127,95,0.18);
+}
+
+.adviceTitle{
+  font-weight: 800;
+  margin: 0 0 8px;
+  color: var(--olive-900);
+}
+
+.adviceText{
+  margin: 6px 0;
+  font-size: 14px;
+  line-height: 1.7;
+  color: rgba(45,52,42,0.82);
+}
+
+.comboTip{
+  margin-top: 10px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: rgba(45,52,42,0.88);
+}
+
+.adviceTip{
+  margin-top: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(45,52,42,0.9);
+}
+
+/* ===== Header ===== */
+.header{
+  margin-top: 2px;
+  margin-bottom: 14px;
+}
+
+.label{
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(45,52,42,0.65);
+}
+
+.title{
+  margin: 10px 0 8px;
+  font-size: 30px;
+  font-weight: 900;
+  color: var(--olive-900);
+  letter-spacing: -0.4px;
+}
+
+.subtitle{
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.7;
+  color: rgba(45,52,42,0.72);
+}
+
+/* ===== Description ===== */
+.description{
+  margin-top: 14px;
+  color: rgba(45,52,42,0.82);
+  line-height: 1.8;
+  font-size: 14px;
+}
+
+/* ===== Grid ===== */
+.grid{
+  margin-top: 18px;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(12, 1fr);
+}
+
+.methodCard{
+  grid-column: span 12;
+  background: rgba(255,255,255,0.75);
+  border: 1px solid rgba(111,127,95,0.14);
+  border-radius: 18px;
+  padding: 18px 16px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.methodTitle{
+  margin: 0 0 12px;
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--olive-900);
+  width: 100%;
+  text-align: center;
+}
+
+/* ===== Form ===== */
+.form{
+  display: grid;
+  gap: 10px;
+  width: 100%;
+}
+
+.input{
+  width: 100%;
+  padding: 12px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  outline: none;
+  font-size: 14px;
+  background: white;
+}
+
+.input:focus{
+  border-color: rgba(111,127,95,0.55);
+}
+
+/* ===== 메인 CTA : 신청 정보 제출하기 ===== */
+.primaryBtn {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: none;
+  background: #5f6b4f;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease, filter 0.15s ease;
+}
+
+.primaryBtn:hover {
+  background: #515c43;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.18);
+}
+
+
+.primaryBtn:active {
+  transform: translateY(0);
+}
+
+.primaryBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ===== 서브 CTA 공통 (가운데 정렬 + 내용폭) ===== */
+.secondaryBtn{
+  width: fit-content;
+  min-width: 170px;
+  padding: 11px 18px;
+  border-radius: 12px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+
+  margin: 12px auto 0;
+  transition: background 0.15s ease, transform 0.12s ease, filter 0.15s ease;
+}
+
+.secondaryBtn:active{ transform: translateY(1px); }
+
+/* ✅ 프로그램 알아보기: 진한 노란-올리브 + 흰 글씨 */
+.programBtn{
+  background: #8a7a3e;     /* 진한 노란 올리브 */
+  color: #ffffff;
+  border: 1px solid #756632;
+}
+.programBtn:hover{
+  background: #7c6f37;
+  filter: brightness(0.98);
+}
+
+/* ✅ 구글폼 신청하기: 진한 그린-올리브 + 흰 글씨 */
+.googleBtn{
+  background: #2f6b4b;     /* 진한 그린 올리브 */
+  color: #ffffff;
+  border: 1px solid #25563c;
+}
+.googleBtn:hover{
+  background: #285e42;
+  filter: brightness(0.98);
+}
+
+/* ===== Notice / Message ===== */
+.notice{
+  margin-top: 10px;
+  font-size: 12.5px;
+  color: rgba(45,52,42,0.6);
+  line-height: 1.6;
+  width: 100%;
+  text-align: center;
+}
+
+.message{
+  margin-top: 6px;
+  line-height: 1.6;
+  font-size: 13px;
+  color: rgba(45,52,42,0.85);
+  width: 100%;
+  text-align: center;
+}
+
+/* ===== Footer ===== */
+.footer{
+  margin-top: 18px;
+  display:flex;
+  justify-content: center;
+}
+
+.linkBtn{
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(111,127,95,0.28);
+  background: white;
+  color: var(--olive-900);
+  text-decoration: none;
+}
+
+.linkBtn:hover{ background: #f4f6f2; }
+
+/* ===== Desktop Layout ===== */
+@media (min-width: 900px){
+  .methodCard:nth-child(1){ grid-column: span 6; }
+  .methodCard:nth-child(2){ grid-column: span 3; }
+  .methodCard:nth-child(3){ grid-column: span 3; }
+
+  .methodTitle{ text-align: left; }
+  .notice, .message{ text-align: left; }
+}
