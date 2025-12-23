@@ -317,7 +317,7 @@
 
 /* ✅ 번짐: 요청대로 위치/크기 그대로 유지(여기 건드리지 말기) */
 .topLogoBunjim{
-  height: calc(var(--hero-logo-h) * 0.9);
+  height: calc(var(--hero-logo-h) * 0.8);
   transform: translateY(8px);
   filter: drop-shadow(0 20px 42px rgba(0,0,0,0.22));
   opacity: 0.98;
