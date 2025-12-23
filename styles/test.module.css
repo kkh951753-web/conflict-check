@@ -134,3 +134,70 @@
   .question{ font-size: 18px; }
   .optionBtn{ font-size: 13px; }
 }
+/* ===== Top Logos (Floating / Pop-out) ===== */
+.topLogoWrap{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:22px;
+  margin-top:12px;
+  margin-bottom:14px;
+  position:relative;
+  z-index:3;
+}
+
+.logoFloat{
+  background: rgba(255,255,255,0.72);
+  border-radius: 18px;
+  padding: 10px 12px;
+
+  box-shadow:
+    0 10px 22px rgba(0,0,0,0.12),
+    0 2px 6px rgba(0,0,0,0.06);
+
+  transform: translateY(6px);
+  backdrop-filter: blur(6px);
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.logoFloat:hover{
+  transform: translateY(2px);
+  box-shadow:
+    0 16px 32px rgba(0,0,0,0.16),
+    0 4px 10px rgba(0,0,0,0.08);
+}
+
+.logo{
+  height:72px;
+  width:auto;
+  display:block;
+}
+
+.logoRstyle{ height:76px; }
+.logoBunjim{ height:62px; }
+
+/* ===== Card 내려주기 ===== */
+.cardLower{
+  margin-top: 22px;
+}
+
+/* 모바일 대응 */
+@media (max-width:480px){
+  .topLogoWrap{
+    gap:12px;
+    margin-top:8px;
+  }
+
+  .logoFloat{
+    padding: 8px 10px;
+    border-radius:16px;
+  }
+
+  .logo{ height:52px; }
+  .logoRstyle{ height:56px; }
+  .logoBunjim{ height:46px; }
+
+  .cardLower{
+    margin-top: 16px;
+  }
+}

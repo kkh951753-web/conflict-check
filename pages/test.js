@@ -98,108 +98,132 @@ export default function TestPage() {
 
   return (
     <main className={styles.page}>
-      <div className={styles.card}>
-
-        <div className={styles.formGroup}>
-          {/* ✅ 이름(6) + 나이(4) 한 줄 */}
-          <div className={styles.formRowNameAge}>
-            <div className={styles.formField}>
-              <label>이름</label>
-              <input
-                className={styles.control}
-                type="text"
-                name="name"
-                value={form.name}
-                onChange={handleChange}
-                placeholder="이름을 입력해 주세요"
-                autoComplete="name"
-              />
-            </div>
-
-            <div className={styles.formField}>
-              <label>나이</label>
-              <input
-                className={styles.control}
-                type="text"
-                name="age"
-                value={form.age}
-                onChange={handleChange}
-                placeholder="숫자만 입력"
-                inputMode="numeric"
-                autoComplete="off"
-              />
-            </div>
-          </div>
-
-          {/* ✅ MBTI + 성별 한 줄 */}
-          <div className={styles.formRowTwo}>
-            <div className={styles.formField}>
-              <label>MBTI (선택)</label>
-              <select
-                className={styles.control}
-                name="mbti"
-                value={form.mbti}
-                onChange={handleChange}
-              >
-                <option value="">선택 안 함</option>
-                {MBTI_OPTIONS.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className={styles.formField}>
-              <label>성별</label>
-              <select
-                className={styles.control}
-                name="gender"
-                value={form.gender}
-                onChange={handleChange}
-              >
-                <option value="">선택해 주세요</option>
-                <option value="남성">남성</option>
-                <option value="여성">여성</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <div className={styles.agreeRow}>
-          <label className={styles.agreeLabel}>
-            <input
-              type="checkbox"
-              name="agree"
-              checked={form.agree}
-              onChange={handleChange}
-              disabled={submitting}
+      {/* ✅ (중요) 로고 + 카드가 "가로로 갈라지는" 걸 막기 위해 세로 스택 래퍼로 감쌈 */}
+      <div className={styles.stack}>
+        {/* ✅ 상단 로고 2개 (나란히 + 떠있는 효과) */}
+        <div className={styles.topLogoWrap}>
+          <div className={styles.logoFloat}>
+            <img
+              src="/logos/rstyle.png"
+              alt="R-STYLE"
+              className={`${styles.topLogoImg} ${styles.topLogoRstyle}`}
+              draggable={false}
             />
-            <span>개인정보 수집 · 이용에 동의합니다 (필수)</span>
+          </div>
 
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setShowTerms(true);
-              }}
-              className={styles.termsInline}
-              disabled={submitting}
-            >
-              약관 보기
-            </button>
-          </label>
+          <div className={styles.logoFloat}>
+            <img
+              src="/logos/bunjim.png"
+              alt="청춘번짐"
+              className={`${styles.topLogoImg} ${styles.topLogoBunjim}`}
+              draggable={false}
+            />
+          </div>
         </div>
 
-        <button
-          className={styles.primaryButton}
-          onClick={handleStart}
-          disabled={!form.agree || submitting}
-          style={{ opacity: !form.agree || submitting ? 0.6 : 1 }}
-        >
-          {submitting ? "저장 중..." : "검사 시작하기"}
-        </button>
+        {/* ✅ 카드 (조금 아래로 내려오기) */}
+        <div className={`${styles.card} ${styles.cardLower}`}>
+          <div className={styles.formGroup}>
+            {/* ✅ 이름(6) + 나이(4) 한 줄 */}
+            <div className={styles.formRowNameAge}>
+              <div className={styles.formField}>
+                <label>이름</label>
+                <input
+                  className={styles.control}
+                  type="text"
+                  name="name"
+                  value={form.name}
+                  onChange={handleChange}
+                  placeholder="이름을 입력해 주세요"
+                  autoComplete="name"
+                />
+              </div>
+
+              <div className={styles.formField}>
+                <label>나이</label>
+                <input
+                  className={styles.control}
+                  type="text"
+                  name="age"
+                  value={form.age}
+                  onChange={handleChange}
+                  placeholder="숫자만 입력"
+                  inputMode="numeric"
+                  autoComplete="off"
+                />
+              </div>
+            </div>
+
+            {/* ✅ MBTI + 성별 한 줄 */}
+            <div className={styles.formRowTwo}>
+              <div className={styles.formField}>
+                <label>MBTI (선택)</label>
+                <select
+                  className={styles.control}
+                  name="mbti"
+                  value={form.mbti}
+                  onChange={handleChange}
+                >
+                  <option value="">선택 안 함</option>
+                  {MBTI_OPTIONS.map((t) => (
+                    <option key={t} value={t}>
+                      {t}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className={styles.formField}>
+                <label>성별</label>
+                <select
+                  className={styles.control}
+                  name="gender"
+                  value={form.gender}
+                  onChange={handleChange}
+                >
+                  <option value="">선택해 주세요</option>
+                  <option value="남성">남성</option>
+                  <option value="여성">여성</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div className={styles.agreeRow}>
+            <label className={styles.agreeLabel}>
+              <input
+                type="checkbox"
+                name="agree"
+                checked={form.agree}
+                onChange={handleChange}
+                disabled={submitting}
+              />
+              <span>개인정보 수집 · 이용에 동의합니다 (필수)</span>
+
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setShowTerms(true);
+                }}
+                className={styles.termsInline}
+                disabled={submitting}
+              >
+                약관 보기
+              </button>
+            </label>
+          </div>
+
+          <button
+            className={styles.primaryButton}
+            onClick={handleStart}
+            disabled={!form.agree || submitting}
+            style={{ opacity: !form.agree || submitting ? 0.6 : 1 }}
+          >
+            {submitting ? "저장 중..." : "검사 시작하기"}
+          </button>
+        </div>
       </div>
 
       {showTerms && (
