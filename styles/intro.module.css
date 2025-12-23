@@ -336,7 +336,7 @@
 /* ===== 모바일 로고 ===== */
 @media (max-width:480px){
   :root{
-    --hero-logo-h: 220px;
+    --hero-logo-h: 250px;
     --rstyle-x: 20px; /* 모바일에선 X 이동 덜 */
   }
 
@@ -348,7 +348,7 @@
   }
 
   .topLogoRstyle{
-    transform: translate(var(--rstyle-x), 40px);
+    transform: translate(var(--rstyle-x), 60px);
   }
   .topLogoRstyle:hover{
     transform: translate(var(--rstyle-x), 34px);

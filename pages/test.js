@@ -105,7 +105,7 @@ export default function TestPage() {
           <div className={styles.logoFloat}>
             <img
               src="/logos/rstyle.png"
-              alt="R-STYLE"
+              alt="rstyle"
               className={`${styles.topLogoImg} ${styles.topLogoRstyle}`}
               draggable={false}
             />
