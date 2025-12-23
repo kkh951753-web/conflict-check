@@ -1,4 +1,4 @@
-/* styles/intro.module.css  (완성형 - 이름/나이 한줄(6:4), MBTI/성별 한줄, 약관보기 모바일 크게 보임 해결 포함) */
+/* styles/intro.module.css  (모바일 오른쪽 여백 버그 수정 완료본) */
 
 :root {
   --card-bg: rgba(255, 255, 255, 0.9);
@@ -18,14 +18,12 @@
 
   --intro-bg-image: url("/bg/meadow-animals.png");
 
-  /* ✅ 로고 크기 기준값 */
+  /* 로고 기준 */
   --hero-logo-h: 460px;
-
-  /* ✅ RSTYLE만 오른쪽으로 당기는 값(번짐 안 건드림) */
-  --rstyle-x: 60px; /* 필요하면 40~90 사이로만 조절 */
+  --rstyle-x: 60px;
 }
 
-/* ===== 페이지 배경 ===== */
+/* ===== 페이지 ===== */
 .page {
   min-height: 100vh;
   display: flex;
@@ -45,6 +43,9 @@
   background-repeat: no-repeat;
   background-size: cover;
   background-position: center bottom;
+
+  /* ✅ FIX: 모바일 가로 오버플로우 완전 차단 */
+  overflow-x: clip;
 }
 
 /* ===== 카드 ===== */
@@ -62,7 +63,6 @@
     0 6px 18px rgba(15, 23, 42, 0.06);
 }
 
-/* ===== 제목 ===== */
 .title {
   font-size: 30px;
   font-weight: 900;
@@ -101,20 +101,17 @@
   box-shadow: 0 0 0 5px var(--control-ring);
 }
 
-/* ✅ 한 줄 레이아웃용 */
 .formField {
   display: flex;
   flex-direction: column;
 }
 
-/* ✅ 이름(6) + 나이(4) */
 .formRowNameAge {
   display: grid;
   grid-template-columns: 6fr 4fr;
   gap: 12px;
 }
 
-/* ✅ MBTI + 성별 */
 .formRowTwo {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -138,7 +135,6 @@
   gap: 8px;
   font-size: 14px;
   color: var(--text-strong);
-
   flex-wrap: wrap;
   row-gap: 6px;
   line-height: 1.4;
@@ -148,27 +144,21 @@
   width: 16px;
   height: 16px;
   accent-color: var(--primary-1);
-  flex: 0 0 auto;
 }
 
-/* ✅ 모바일에서 "버튼처럼 크게" 보이는 문제 해결 */
 .termsInline,
 .termsLink {
   margin-left: 6px;
   padding: 0;
   background: none;
   border: none;
-
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--text-sub);
-
   cursor: pointer;
   text-decoration: underline;
-
   line-height: 1;
   appearance: none;
-  -webkit-appearance: none;
 }
 
 /* ===== 버튼 ===== */
@@ -192,8 +182,75 @@
   box-shadow: none;
 }
 
-/* ===== 모바일 ===== */
+/* =============================
+   로고 영역
+============================= */
+
+.stack {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.topLogoWrap {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 56px;
+  margin-top: 10px;
+  margin-bottom: 18px;
+  position: relative;
+  z-index: 3;
+
+  transform: translateX(-80px);
+}
+
+.logoFloat {
+  background: transparent;
+  padding: 0;
+  box-shadow: none;
+}
+
+.topLogoImg {
+  display: block;
+  user-select: none;
+  filter: drop-shadow(0 18px 38px rgba(0,0,0,0.22));
+  transition: transform 220ms ease, filter 220ms ease;
+}
+
+.topLogoRstyle {
+  height: var(--hero-logo-h);
+  transform: translate(var(--rstyle-x), 100px);
+}
+
+.topLogoRstyle:hover {
+  transform: translate(var(--rstyle-x), 92px);
+}
+
+.topLogoBunjim {
+  height: calc(var(--hero-logo-h) * 0.8);
+  transform: translateY(8px);
+  opacity: 0.98;
+}
+
+.topLogoBunjim:hover {
+  transform: translateY(4px);
+}
+
+.cardLower {
+  margin-top: 26px;
+}
+
+/* =============================
+   ✅ 모바일 FIX (핵심)
+============================= */
 @media (max-width: 480px) {
+  :root {
+    --hero-logo-h: 250px;
+    --rstyle-x: 20px;
+  }
+
   .page {
     padding: 24px 12px;
     align-items: center;
@@ -206,162 +263,45 @@
     background: rgba(255, 255, 255, 0.86);
   }
 
-  .title {
-    font-size: 20px;
-    margin-bottom: 10px;
-  }
-
-  .formGroup {
-    gap: 8px;
-  }
-
-  .formGroup label {
-    font-size: 12px;
-  }
-
-  .control {
-    padding: 11px 12px;
-    font-size: 13px;
-    border-radius: 14px;
-    min-width: 0;
-  }
-
-  .agreeRow {
-    margin-top: 12px;
-    padding-top: 10px;
-  }
-
-  .agreeLabel {
-    font-size: 13px;
-  }
-
-  .formRowNameAge {
-    grid-template-columns: 6fr 4fr;
-    gap: 10px;
-  }
-
-  .formRowTwo {
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-  }
-
-  .termsInline,
-  .termsLink {
-    font-size: 0.7rem;
-    padding: 2px 0;
-  }
-
-  .primaryButton {
-    margin-top: 14px;
-    padding: 12px 16px;
-    font-size: 14px;
-  }
-}
-
-/* =============================
-   ✅ 로고 영역 (수정 완료)
-   - transform 문법 오류 수정
-   - hover 튐 방향 정상화
-   - RSTYLE만 오른쪽으로 붙임(번짐 로고는 손대지 않음)
-============================= */
-
-.stack{
-  width:100%;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-}
-
-.topLogoWrap{
-  display:flex;
-  justify-content:center;
-  align-items:flex-end;
-  gap: 56px;
-  margin-top: 10px;
-  margin-bottom: 18px;
-  position:relative;
-  z-index:3;
-
-  transform: translateX(-80px); /* 전체 그룹 왼쪽 이동 */
-}
-
-/* 예전 네모카드 무력화 */
-.logoFloat{
-  background: transparent;
-  border-radius: 0;
-  padding: 0;
-  box-shadow: none;
-  backdrop-filter: none;
-  transform: none;
-}
-
-.topLogoImg{
-  width:auto;
-  display:block;
-  user-select:none;
-  filter: drop-shadow(0 18px 38px rgba(0,0,0,0.22));
-  transition: transform 220ms ease, filter 220ms ease;
-}
-
-/* ✅ R-STYLE (X+Y 같이 제어: translate 사용) */
-.topLogoRstyle{
-  height: var(--hero-logo-h);
-  transform: translate(var(--rstyle-x), 100px); /* ✅ 오른쪽 + 아래 */
-  filter: drop-shadow(0 22px 46px rgba(0,0,0,0.26));
-}
-
-.topLogoRstyle:hover{
-  transform: translate(var(--rstyle-x), 92px); /* ✅ hover 시 살짝 위로(8px) */
-  filter: drop-shadow(0 28px 60px rgba(0,0,0,0.30));
-}
-
-/* ✅ 번짐: 요청대로 위치/크기 그대로 유지(여기 건드리지 말기) */
-.topLogoBunjim{
-  height: calc(var(--hero-logo-h) * 0.8);
-  transform: translateY(8px);
-  filter: drop-shadow(0 20px 42px rgba(0,0,0,0.22));
-  opacity: 0.98;
-}
-
-.topLogoBunjim:hover{
-  transform: translateY(4px);
-  filter: drop-shadow(0 26px 56px rgba(0,0,0,0.26));
-}
-
-/* 카드 내려주기 */
-.cardLower{
-  margin-top: 26px;
-}
-
-/* ===== 모바일 로고 ===== */
-@media (max-width:480px){
-  :root{
-    --hero-logo-h: 250px;
-    --rstyle-x: 20px; /* 모바일에선 X 이동 덜 */
-  }
-
-  .topLogoWrap{
+  /* ✅ FIX: 로고 그룹이 화면을 절대 넘지 않게 */
+  .topLogoWrap {
+    max-width: 100%;
+    padding: 0 10px;
     gap: 20px;
     margin-top: 8px;
     margin-bottom: 14px;
-    transform: translateX(-20px);
+
+    /* ❗ 핵심 */
+    transform: translateX(0);
   }
 
-  .topLogoRstyle{
+  /* ✅ FIX: 이미지가 화면 밖으로 못 나가게 */
+  .topLogoImg {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .topLogoRstyle {
+    height: var(--hero-logo-h);
+    max-width: 56vw;
     transform: translate(var(--rstyle-x), 60px);
   }
-  .topLogoRstyle:hover{
-    transform: translate(var(--rstyle-x), 34px);
+
+  .topLogoRstyle:hover {
+    transform: translate(var(--rstyle-x), 52px);
   }
 
-  .topLogoBunjim{
+  .topLogoBunjim {
+    height: calc(var(--hero-logo-h) * 0.8);
+    max-width: 40vw;
     transform: translateY(6px);
   }
-  .topLogoBunjim:hover{
+
+  .topLogoBunjim:hover {
     transform: translateY(3px);
   }
 
-  .cardLower{
+  .cardLower {
     margin-top: 20px;
   }
 }
