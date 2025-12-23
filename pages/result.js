@@ -131,7 +131,7 @@ const explainMbtiRelation = (mbti) => {
   ].filter((v) => v.text);
 };
 
-/* ================= 16유형 동물 매핑(별명 포함) ================= */
+/* ================= 16유형 동물 키 계산용 ================= */
 
 // 대표유형(4) -> 번호(1~4)
 const MAIN_TO_NUM = {
@@ -139,29 +139,6 @@ const MAIN_TO_NUM = {
   문제해결: "2",
   관계: "3",
   회피: "4",
-};
-
-// 16코드(1nf 등) -> 동물/별명
-const ANIMAL_INFO = {
-  "1nf": { animal: "강아지", nickname: "감정을 먼저 안아주는 강아지" },
-  "1nt": { animal: "햄스터", nickname: "마음을 혼자 굴리는 햄스터" },
-  "1sf": { animal: "병아리", nickname: "분위기에 민감한 병아리" },
-  "1st": { animal: "토끼", nickname: "조심스럽게 다가오는 토끼" },
-
-  "2nt": { animal: "독수리", nickname: "판을 내려다보는 독수리" },
-  "2st": { animal: "경주마", nickname: "멈추지 않고 달리는 경주마" },
-  "2nf": { animal: "호랑이", nickname: "사람을 이끄는 호랑이" },
-  "2sf": { animal: "사자", nickname: "현장을 책임지는 사자" },
-
-  "3nf": { animal: "돌고래", nickname: "마음을 이어주는 돌고래" },
-  "3sf": { animal: "코끼리", nickname: "묵묵히 지탱하는 코끼리" },
-  "3nt": { animal: "카피바라", nickname: "판을 부드럽게 정리하는 카피바라" },
-  "3st": { animal: "펭귄", nickname: "질서 안에서 지키는 펭귄" },
-
-  "4nt": { animal: "여우", nickname: "한 발 떨어져 보는 여우" },
-  "4nf": { animal: "고양이", nickname: "가까워질수록 깊어지는 고양이" },
-  "4sf": { animal: "거북이", nickname: "안전을 먼저 확보하는 거북이" },
-  "4st": { animal: "곰", nickname: "선을 지키며 버티는 곰" },
 };
 
 export default function ResultPage() {
@@ -266,18 +243,17 @@ export default function ResultPage() {
     return "대표 유형은 정해졌지만, 2순위 성향도 꽤 가까워요. 상황에 따라 보조경향이 함께 작동할 수 있습니다.";
   }, [scores, sortedEntries, gapToSecond, tiedTop.length]);
 
-  // ✅ 주유형 + MBTI(NS/FT) -> 16유형 키 (예: "1nf")
+  // ✅ 주유형 + MBTI(NS/FT) -> 16유형 키 (예: "2nt")
   const animalKey = useMemo(() => {
     const num = MAIN_TO_NUM[mainType];          // "1"~"4"
-    const mbti = normalizeMbti(userInfo.mbti);  // "INFP"
-    const ns = mbti[1];                         // N or S
-    const ft = mbti[2];                         // F or T
-    return `${num}${ns}${ft}`.toLowerCase();    // "1nf"
+    const mbti = normalizeMbti(userInfo.mbti);  // "ENTJ"
+    const ns = mbti[1];                         // N/S
+    const ft = mbti[2];                         // F/T
+    return `${num}${ns}${ft}`.toLowerCase();    // "2nt"
   }, [mainType, userInfo.mbti]);
 
-  // ✅ 이미지 경로: public/animals/1nf.png
+  // ✅ 이미지 경로: public/animals/2nt.png
   const animalImgSrc = useMemo(() => `/animals/${animalKey}.png`, [animalKey]);
-  const animalInfo = ANIMAL_INFO[animalKey];
 
   const goToRetest = () => router.push("/test");
 
@@ -331,45 +307,21 @@ export default function ResultPage() {
           )}
         </h2>
 
-        {/* ✅ 동물 결과(주유형 + MBTI 조합) : 보조유형 동물은 표시하지 않음 */}
-        <div
-          style={{
-            marginTop: "12px",
-            padding: "14px 14px 12px",
-            borderRadius: "16px",
-            background: "rgba(15, 23, 42, 0.04)",
-            border: "1px solid rgba(15, 23, 42, 0.06)",
-          }}
-        >
-          <div style={{ display: "flex", gap: "14px", alignItems: "center", flexWrap: "wrap" }}>
-            <img
-              src={animalImgSrc}
-              alt={animalInfo?.animal || "동물 이미지"}
-              style={{
-                width: "130px",
-                maxWidth: "40vw",
-                height: "auto",
-                borderRadius: "14px",
-                display: "block",
-                boxShadow: "0 10px 24px rgba(0,0,0,0.12)",
-              }}
-            />
-
-            <div style={{ minWidth: "200px", flex: "1 1 220px" }}>
-              <div style={{ fontSize: "14px", color: "rgba(15, 23, 42, 0.65)", fontWeight: 700 }}>
-                나의 동물 결과
-              </div>
-              <div style={{ fontSize: "20px", fontWeight: 900, marginTop: "2px" }}>
-                {animalInfo?.animal}
-                <span style={{ fontSize: "14px", fontWeight: 700, marginLeft: "8px", color: "rgba(15, 23, 42, 0.55)" }}>
-                  ({animalKey})
-                </span>
-              </div>
-              <div style={{ marginTop: "6px", fontSize: "15px", fontWeight: 800, color: "rgba(15, 23, 42, 0.78)" }}>
-                {animalInfo?.nickname}
-              </div>
-            </div>
-          </div>
+        {/* ✅ 동물 이미지: 텍스트 전부 제거, 이미지만 크게 */}
+        <div style={{ marginTop: "16px", marginBottom: "10px", textAlign: "center" }}>
+          <img
+            src={animalImgSrc}
+            alt="동물 이미지"
+            style={{
+              width: "260px",
+              maxWidth: "80vw",
+              height: "auto",
+              borderRadius: "22px",
+              display: "block",
+              margin: "0 auto",
+              boxShadow: "0 18px 40px rgba(0,0,0,0.18)",
+            }}
+          />
         </div>
 
         {tiedTop.length > 1 && (
